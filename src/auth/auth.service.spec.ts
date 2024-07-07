@@ -6,6 +6,7 @@ import { userFixture } from '../users/test-utils';
 import { UsersService } from '../users/users.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from '../users/dto';
+import { MailService } from '../mail/mail.service';
 
 jest.mock('argon2');
 
@@ -18,6 +19,7 @@ describe('AuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
+        MailService,
         {
           provide: UsersService,
           useValue: {

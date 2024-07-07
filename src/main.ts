@@ -2,8 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as session from 'express-session';
-import * as passport from 'passport';
+import session from 'express-session';
+import passport from 'passport';
+import { createClient } from 'redis';
+import RedisStore from 'connect-redis';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,7 +16,11 @@ async function bootstrap() {
     credentials: true,
   });
 
+  const redisClient = createClient({ url: configService.get('REDIS_URL') });
+  await redisClient.connect();
+
   const sessionMiddleware = session({
+    store: new RedisStore({ client: redisClient }),
     secret: configService.get('SESSION_SECRET'),
     resave: false,
     saveUninitialized: false,
@@ -29,6 +35,6 @@ async function bootstrap() {
   app.use(sessionMiddleware);
   app.use(passport.initialize());
   app.use(passport.session());
-  await app.listen(3000);
+  await app.listen(5000);
 }
 bootstrap();

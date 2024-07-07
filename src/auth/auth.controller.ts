@@ -17,6 +17,7 @@ import { CurrentUser } from '../users/decorators';
 import { User } from '@prisma/client';
 import { TransformDataInterceptor } from '../common/interceptors';
 import { AuthResponse } from './types';
+import { ForgotPasswordDto, ResetPasswordDto } from './dto';
 
 @Controller('auth')
 export class AuthController {
@@ -50,5 +51,17 @@ export class AuthController {
   logout(@Req() req: Request) {
     req.logOut(() => {});
     req.session.cookie.maxAge = 0;
+  }
+
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Post('forgot-password')
+  async handleForgotPassword(@Body() { email }: ForgotPasswordDto) {
+    await this.authService.handleForgotPassword(email);
+  }
+
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Post('reset-password')
+  async handleResetPassword(@Body() { password, token }: ResetPasswordDto) {
+    await this.authService.handleResetPassword(token, password);
   }
 }
