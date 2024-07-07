@@ -14,6 +14,8 @@ import * as Joi from '@hapi/joi';
       validationSchema: Joi.object({
         DATABASE_URL: Joi.string().required(),
         REDIS_URL: Joi.string().required(),
+        SESSION_SECRET: Joi.string().required(),
+        CORS_ORIGIN: Joi.string().required(),
       }),
     }),
     UsersModule,

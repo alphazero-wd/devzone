@@ -44,12 +44,11 @@ export class AuthController {
     return user;
   }
 
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(CookieAuthGuard)
   @Post('logout')
   logout(@Req() req: Request) {
     req.logOut(() => {});
     req.session.cookie.maxAge = 0;
-    return { success: true };
   }
 }

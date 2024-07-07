@@ -80,9 +80,7 @@ describe('AuthController', () => {
           cookie: { maxAge: 100000 },
         },
       } as any;
-      const { success } = controller.logout(req);
       expect(req.session.cookie.maxAge).toBe(0);
-      expect(success).toBeTruthy();
     });
   });
 });

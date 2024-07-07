@@ -26,9 +26,9 @@ export class AuthService {
       await this.verifyPassword(user.password, password);
       return user;
     } catch (error) {
-      if (error instanceof InternalServerErrorException) throw error;
-      // for security reasons
-      throw new BadRequestException('Wrong email or password provided');
+      if (error instanceof BadRequestException)
+        throw new BadRequestException('Wrong email or password provided');
+      else throw new InternalServerErrorException(error.message);
     }
   }
 
