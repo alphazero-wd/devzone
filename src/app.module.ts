@@ -8,6 +8,7 @@ import { MailModule } from './mail/mail.module';
 import Joi from '@hapi/joi';
 import * as redisStore from 'cache-manager-redis-store';
 import { CacheModule } from '@nestjs/cache-manager';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     }),
     UsersModule,
     MailModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -4,7 +4,6 @@ import { Exclude } from 'class-transformer';
 export class AuthResponse implements User {
   id: number;
   name: string;
-  @Exclude()
   email: string;
 
   @Exclude()
@@ -16,4 +15,9 @@ export class AuthResponse implements User {
   @Exclude()
   password: string;
   createdAt: Date;
+
+  @Exclude()
+  newEmailToken: string | null;
+  @Exclude()
+  oldEmailToken: string | null;
 }

@@ -5,6 +5,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dto';
@@ -38,15 +39,15 @@ export class AuthService {
 
   async sendConfirmationEmail(user: User) {
     const token = v4();
-    await this.mailService.sendConfirmationEmail(user, token);
+    await this.mailService.sendConfirmationEmail(user.email, user.name, token);
     await this.cacheService.set(
-      `${CONFIRM_EMAIL_KEY_PREFIX}-${token}`,
+      `${CONFIRM_EMAIL_KEY_PREFIX}:${token}`,
       user.id,
     );
   }
 
   async confirmEmail(id: number, token: string) {
-    const confirmToken = `${CONFIRM_EMAIL_KEY_PREFIX}-${token}`;
+    const confirmToken = `${CONFIRM_EMAIL_KEY_PREFIX}:${token}`;
     const userId = await this.validateToken(confirmToken);
     if (id !== userId) throw new ForbiddenException();
     await this.cacheService.del(confirmToken);
@@ -55,20 +56,21 @@ export class AuthService {
 
   async handleForgotPassword(email: string) {
     const user = await this.usersService.findByEmail(email);
+    if (!user) throw new NotFoundException('Email does not exist');
     const token = v4();
     await this.cacheService.set(
-      `${FORGOT_PASSWORD_KEY_PREFIX}-${token}`,
+      `${FORGOT_PASSWORD_KEY_PREFIX}:${token}`,
       user.id,
     );
-    await this.mailService.sendResetPassword(user, token);
+    await this.mailService.sendResetPassword(user.email, user.name, token);
   }
 
   async handleResetPassword(token: string, newPassword: string) {
     const userId = await this.validateToken(
-      `${FORGOT_PASSWORD_KEY_PREFIX}-${token}`,
+      `${FORGOT_PASSWORD_KEY_PREFIX}:${token}`,
     );
     const hashedPassword = await argon2.hash(newPassword);
-    await this.cacheService.del(`${FORGOT_PASSWORD_KEY_PREFIX}-${token}`);
+    await this.cacheService.del(`${FORGOT_PASSWORD_KEY_PREFIX}:${token}`);
     await this.usersService.update(userId, { password: hashedPassword });
   }
 

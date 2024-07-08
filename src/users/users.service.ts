@@ -38,17 +38,10 @@ export class UsersService {
   }
 
   async findByEmail(email: string) {
-    try {
-      const user = await this.prisma.user.findUniqueOrThrow({
-        where: { email },
-      });
-      return user;
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError)
-        if (error.code === PrismaError.RecordNotFound)
-          throw new NotFoundException('User with that email does not exist');
-      throw new InternalServerErrorException('Something went wrong');
-    }
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    return user;
   }
 
   async confirmEmail(id: number) {
@@ -56,6 +49,18 @@ export class UsersService {
       where: { id },
       data: { confirmedAt: new Date() },
     });
+  }
+
+  async remove(id: number) {
+    try {
+      await this.prisma.user.delete({ where: { id } });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError)
+        if (error.code === PrismaError.RecordNotFound)
+          throw new NotFoundException('User with that id does not exist');
+
+      throw new InternalServerErrorException('Something went wrong');
+    }
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
@@ -70,14 +75,7 @@ export class UsersService {
         if (error.code === PrismaError.RecordNotFound)
           throw new NotFoundException('User with that id does not exist');
         if (error.code === PrismaError.UniqueViolation) {
-          if (error.message.includes('username'))
-            throw new BadRequestException(
-              'User with that username already exists',
-            );
-          if (error.message.includes('email'))
-            throw new BadRequestException(
-              'User with that email already exists',
-            );
+          throw new BadRequestException('User with that email already exists');
         }
       }
       throw new InternalServerErrorException('Something went wrong');
