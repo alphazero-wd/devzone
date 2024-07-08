@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { MailModule } from './mail/mail.module';
-import * as Joi from '@hapi/joi';
+import Joi from '@hapi/joi';
 import * as redisStore from 'cache-manager-redis-store';
 import { CacheModule } from '@nestjs/cache-manager';
 
@@ -22,13 +22,19 @@ import { CacheModule } from '@nestjs/cache-manager';
         SESSION_SECRET: Joi.string().required(),
         CORS_ORIGIN: Joi.string().required(),
         MAIL_TRANSPORT: Joi.string().required(),
+        CACHE_TTL: Joi.string().required(),
       }),
     }),
-    CacheModule.register({
+    CacheModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
       isGlobal: true,
-      store: redisStore,
-      host: process.env.REDIS_HOST,
-      port: process.env.REDIS_PORT,
+      useFactory: (configService: ConfigService) => ({
+        store: redisStore,
+        ttl: configService.get('CACHE_TTL'),
+        host: configService.get('REDIS_HOST'),
+        port: configService.get('REDIS_PORT'),
+      }),
     }),
     UsersModule,
     MailModule,

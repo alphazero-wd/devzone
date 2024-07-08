@@ -6,6 +6,13 @@ export class AuthResponse implements User {
   name: string;
   @Exclude()
   email: string;
+
+  @Exclude()
+  confirmedAt: Date | null;
+
+  @Exclude()
+  newEmail: string | null;
+
   @Exclude()
   password: string;
   createdAt: Date;

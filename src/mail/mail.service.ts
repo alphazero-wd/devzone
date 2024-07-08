@@ -20,4 +20,15 @@ export class MailService {
       context: { name: user.name, url },
     });
   }
+
+  async sendConfirmationEmail(user: User, token: string) {
+    const url = `${this.configService.get('CORS_ORIGIN')}/auth/confirm-email?token=${token}`;
+
+    await this.mailerService.sendMail({
+      to: user.email,
+      subject: 'Confirm your email account',
+      template: './confirm-email',
+      context: { name: user.name, url },
+    });
+  }
 }

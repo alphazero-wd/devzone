@@ -51,6 +51,13 @@ export class UsersService {
     }
   }
 
+  async confirmEmail(id: number) {
+    await this.prisma.user.update({
+      where: { id },
+      data: { confirmedAt: new Date() },
+    });
+  }
+
   async update(id: number, updateUserDto: UpdateUserDto) {
     try {
       const updatedUser = await this.prisma.user.update({

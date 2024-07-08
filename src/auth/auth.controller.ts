@@ -1,5 +1,5 @@
-import { Request } from 'express';
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -10,14 +10,15 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { CreateUserDto } from '../users/dto';
-import { CookieAuthGuard, LocalAuthGuard } from './guards';
-import { CurrentUser } from '../users/decorators';
 import { User } from '@prisma/client';
+import { Request } from 'express';
 import { TransformDataInterceptor } from '../common/interceptors';
+import { CurrentUser } from '../users/decorators';
+import { CreateUserDto } from '../users/dto';
+import { AuthService } from './auth.service';
+import { ConfirmEmailDto, ForgotPasswordDto, ResetPasswordDto } from './dto';
+import { CookieAuthGuard, LocalAuthGuard } from './guards';
 import { AuthResponse } from './types';
-import { ForgotPasswordDto, ResetPasswordDto } from './dto';
 
 @Controller('auth')
 export class AuthController {
@@ -28,6 +29,29 @@ export class AuthController {
   async register(@Body() createUserDto: CreateUserDto) {
     const newUser = await this.authService.register(createUserDto);
     return newUser;
+  }
+
+  @UseGuards(CookieAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseInterceptors(new TransformDataInterceptor(AuthResponse))
+  @Post('confirm-email')
+  async confirmEmail(
+    @CurrentUser() user: User,
+    @Body() { token }: ConfirmEmailDto,
+  ) {
+    if (user.confirmedAt)
+      throw new BadRequestException('You have already confirmed your email');
+    await this.authService.confirmEmail(user.id, token);
+  }
+
+  @UseGuards(CookieAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseInterceptors(new TransformDataInterceptor(AuthResponse))
+  @Post('resend-confirmation')
+  async resendConfirmEmail(@CurrentUser() user: User) {
+    if (user.confirmedAt)
+      throw new BadRequestException('You have already confirmed your email');
+    await this.authService.sendConfirmationEmail(user);
   }
 
   @HttpCode(HttpStatus.OK)

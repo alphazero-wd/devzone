@@ -1,6 +1,7 @@
 import * as argon2 from 'argon2';
 import {
   BadRequestException,
+  ForbiddenException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -11,7 +12,11 @@ import { MailService } from '../mail/mail.service';
 import { v4 } from 'uuid';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { FORGOT_PASSWORD_KEY_PREFIX } from '../common/constants';
+import {
+  CONFIRM_EMAIL_KEY_PREFIX,
+  FORGOT_PASSWORD_KEY_PREFIX,
+} from '../common/constants';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -27,7 +32,25 @@ export class AuthService {
       ...createUserDto,
       password: hashedPassword,
     });
+    await this.sendConfirmationEmail(user);
     return user;
+  }
+
+  async sendConfirmationEmail(user: User) {
+    const token = v4();
+    await this.mailService.sendConfirmationEmail(user, token);
+    await this.cacheService.set(
+      `${CONFIRM_EMAIL_KEY_PREFIX}-${token}`,
+      user.id,
+    );
+  }
+
+  async confirmEmail(id: number, token: string) {
+    const confirmToken = `${CONFIRM_EMAIL_KEY_PREFIX}-${token}`;
+    const userId = await this.validateToken(confirmToken);
+    if (id !== userId) throw new ForbiddenException();
+    await this.cacheService.del(confirmToken);
+    await this.usersService.confirmEmail(userId);
   }
 
   async handleForgotPassword(email: string) {
@@ -36,22 +59,21 @@ export class AuthService {
     await this.cacheService.set(
       `${FORGOT_PASSWORD_KEY_PREFIX}-${token}`,
       user.id,
-      1000 * 60 * 15,
     );
     await this.mailService.sendResetPassword(user, token);
   }
 
   async handleResetPassword(token: string, newPassword: string) {
-    const userId = await this.validateToken(token);
+    const userId = await this.validateToken(
+      `${FORGOT_PASSWORD_KEY_PREFIX}-${token}`,
+    );
     const hashedPassword = await argon2.hash(newPassword);
     await this.cacheService.del(`${FORGOT_PASSWORD_KEY_PREFIX}-${token}`);
     await this.usersService.update(userId, { password: hashedPassword });
   }
 
   private async validateToken(token: string) {
-    const userId = await this.cacheService.get<number>(
-      `${FORGOT_PASSWORD_KEY_PREFIX}-${token}`,
-    );
+    const userId = await this.cacheService.get<number>(token);
     if (!userId) throw new BadRequestException('Invalid token');
     return userId;
   }
