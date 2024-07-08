@@ -5,6 +5,7 @@ export const userFixture = (attrs?: Partial<User>): User => {
   return {
     id: 1,
     email: faker.internet.email(),
+    avatarId: null,
     confirmedAt: null,
     newEmail: null,
     newEmailToken: null,

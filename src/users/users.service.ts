@@ -4,14 +4,20 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { File, Prisma, User } from '@prisma/client';
 import { PrismaError } from '../prisma/error.enum';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto, UpdateUserDto } from './dto';
+import { StorageService } from '../storage/storage.service';
+import { UploadFileDto } from '../storage/dto';
+import { UserWithAvatar } from './types';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private storageService: StorageService,
+  ) {}
 
   async create(createUserDto: CreateUserDto) {
     try {
@@ -86,6 +92,7 @@ export class UsersService {
     try {
       const user = await this.prisma.user.findUniqueOrThrow({
         where: { id },
+        include: { avatar: true },
       });
       return user;
     } catch (error) {
@@ -94,5 +101,17 @@ export class UsersService {
           throw new NotFoundException('Cannot find user with the given id');
       throw new InternalServerErrorException('Something went wrong');
     }
+  }
+
+  async addAvatar(userId: number, uploadAvatarDto: UploadFileDto) {
+    const [result] = await this.storageService.create([uploadAvatarDto]);
+    const { id } = await this.storageService.findOne(result.Key);
+    await this.update(userId, { avatarId: id });
+  }
+
+  async removeAvatar(user: UserWithAvatar) {
+    if (!user.avatar)
+      throw new BadRequestException("You haven't uploaded an avatar");
+    await this.storageService.remove([user.avatar.key]);
   }
 }

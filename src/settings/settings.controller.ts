@@ -2,18 +2,30 @@ import {
   Body,
   Controller,
   Delete,
+  FileTypeValidator,
   HttpCode,
   HttpStatus,
+  MaxFileSizeValidator,
+  ParseFilePipe,
   Patch,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { SettingsService } from './settings.service';
-import { CookieAuthGuard } from '../auth/guards';
+import { CookieAuthGuard, EmailConfirmAuthGuard } from '../auth/guards';
 import { CurrentUser } from '../users/decorators';
 import { User } from '@prisma/client';
 import { ConfirmEmailDto } from '../auth/dto';
 import { UpdateEmailDto, UpdateNameDto, UpdatePasswordDto } from './dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Express } from 'express';
+import { UserWithAvatar } from '../users/types';
+import {
+  ALLOWED_IMAGE_MIME_TYPES,
+  MAX_AVATAR_FILE_SIZE,
+} from '../common/constants';
 
 @Controller('settings')
 export class SettingsController {
@@ -71,5 +83,34 @@ export class SettingsController {
     @Body() { token }: ConfirmEmailDto,
   ) {
     await this.settingsService.confirmEmailToken(user, token, 'newEmailToken');
+  }
+
+  @UseGuards(EmailConfirmAuthGuard())
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Patch('profile/avatar')
+  @UseInterceptors(FileInterceptor('avatar'))
+  async uploadAvatar(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: MAX_AVATAR_FILE_SIZE }),
+          new FileTypeValidator({ fileType: ALLOWED_IMAGE_MIME_TYPES }),
+        ],
+      }),
+    )
+    avatar: Express.Multer.File,
+    @CurrentUser() user: UserWithAvatar,
+  ) {
+    await this.settingsService.updateAvatar(user, {
+      filename: avatar.filename,
+      buffer: avatar.buffer,
+    });
+  }
+
+  @UseGuards(EmailConfirmAuthGuard())
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete('profile/avatar/remove')
+  async removeAvatar(@CurrentUser() user: UserWithAvatar) {
+    await this.settingsService.deleteAvatar(user);
   }
 }

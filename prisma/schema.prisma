@@ -23,4 +23,13 @@ model User {
   oldEmailToken String?
   newEmailToken String?
   newEmail      String?   @unique
+  avatarId      Int?      @unique
+  avatar        File?     @relation(fields: [avatarId], references: [id], onDelete: SetNull)
+}
+
+model File {
+  id   Int    @id @default(autoincrement())
+  url  String
+  key  String @unique
+  user User?
 }

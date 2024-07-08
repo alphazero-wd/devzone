@@ -4,6 +4,8 @@ import { MailService } from '../mail/mail.service';
 import { User } from '@prisma/client';
 import { v4 } from 'uuid';
 import * as argon2 from 'argon2';
+import { UploadFileDto } from '../storage/dto';
+import { UserWithAvatar } from '../users/types';
 
 @Injectable()
 export class SettingsService {
@@ -17,6 +19,15 @@ export class SettingsService {
       name: newName,
     });
     return updatedUser;
+  }
+
+  async updateAvatar(user: UserWithAvatar, uploadAvatarDto: UploadFileDto) {
+    if (user.avatarId) await this.usersService.removeAvatar(user);
+    await this.usersService.addAvatar(user.id, uploadAvatarDto);
+  }
+
+  async deleteAvatar(user: UserWithAvatar) {
+    await this.usersService.removeAvatar(user);
   }
 
   async updatePassword(user: User, password: string, newPassword: string) {
@@ -58,12 +69,12 @@ export class SettingsService {
       newEmailToken,
       newEmail,
     });
-    await this.mailService.sendConfirmationEmail(
+    await this.mailService.sendChangeEmailConfirmation(
       user.email,
       user.name,
       oldEmailToken,
     );
-    await this.mailService.sendConfirmationEmail(
+    await this.mailService.sendChangeEmailConfirmation(
       newEmail,
       user.name,
       newEmailToken,

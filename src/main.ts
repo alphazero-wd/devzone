@@ -16,7 +16,9 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const redisClient = createClient({ url: configService.get('REDIS_URL') });
+  const redisClient = createClient({
+    url: `redis://${configService.get('REDIS_HOST')}:${configService.get('REDIS_PORT')}`,
+  });
   await redisClient.connect();
 
   const sessionMiddleware = session({
