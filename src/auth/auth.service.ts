@@ -33,7 +33,6 @@ export class AuthService {
       ...createUserDto,
       password: hashedPassword,
     });
-    await this.sendConfirmationEmail(user);
     return user;
   }
 
@@ -83,12 +82,13 @@ export class AuthService {
   async validateUser(email: string, password: string) {
     try {
       const user = await this.usersService.findByEmail(email);
+      if (!user) throw new BadRequestException();
       await this.verifyPassword(user.password, password);
       return user;
     } catch (error) {
       if (error instanceof BadRequestException)
         throw new BadRequestException('Wrong email or password provided');
-      else throw new InternalServerErrorException(error.message);
+      else throw new InternalServerErrorException();
     }
   }
 

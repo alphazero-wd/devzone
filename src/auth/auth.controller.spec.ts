@@ -5,6 +5,7 @@ import { CreateUserDto } from '../users/dto';
 import { User } from '@prisma/client';
 import { userFixture } from '../users/test-utils';
 import { BadRequestException } from '@nestjs/common';
+import { MOCK_TOKEN } from '../common/constants';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -19,6 +20,10 @@ describe('AuthController', () => {
           provide: AuthService,
           useValue: {
             register: jest.fn(),
+            confirmEmail: jest.fn(),
+            sendConfirmationEmail: jest.fn(),
+            handleForgotPassword: jest.fn(),
+            handleResetPassword: jest.fn(),
           },
         },
       ],
@@ -80,7 +85,54 @@ describe('AuthController', () => {
           cookie: { maxAge: 100000 },
         },
       } as any;
+      controller.logout(req);
       expect(req.session.cookie.maxAge).toBe(0);
+    });
+  });
+
+  describe('resendConfirmationEmail', () => {
+    it('should throw error if user has already been confirmed', async () => {
+      const confirmedUser = userFixture({ confirmedAt: new Date() });
+      expect(controller.resendConfirmEmail(confirmedUser)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+    it('should resend confirmation email', async () => {
+      await controller.resendConfirmEmail(user);
+      expect(service.sendConfirmationEmail).toHaveBeenCalledWith(user);
+    });
+  });
+
+  describe('confirmEmail', () => {
+    it('should throw error if user has already been confirmed', async () => {
+      const confirmedUser = userFixture({ confirmedAt: new Date() });
+      expect(
+        controller.confirmEmail(confirmedUser, { token: MOCK_TOKEN }),
+      ).rejects.toThrow(BadRequestException);
+    });
+    it('should confirm user email', async () => {
+      await controller.confirmEmail(user, { token: MOCK_TOKEN });
+      expect(service.confirmEmail).toHaveBeenCalledWith(user.id, MOCK_TOKEN);
+    });
+  });
+
+  describe('handleForgotPassword', () => {
+    it('should send reset password email correctly', async () => {
+      await controller.handleForgotPassword({ email: user.email });
+      expect(service.handleForgotPassword).toHaveBeenCalledWith(user.email);
+    });
+  });
+
+  describe('handleResetPassword', () => {
+    it('should reset password', async () => {
+      await controller.handleResetPassword({
+        password: user.password,
+        token: MOCK_TOKEN,
+      });
+      expect(service.handleResetPassword).toHaveBeenCalledWith(
+        MOCK_TOKEN,
+        user.password,
+      );
     });
   });
 });

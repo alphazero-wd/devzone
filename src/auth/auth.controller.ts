@@ -28,6 +28,7 @@ export class AuthController {
   @UseInterceptors(new TransformDataInterceptor(AuthResponse))
   async register(@Body() createUserDto: CreateUserDto) {
     const newUser = await this.authService.register(createUserDto);
+    await this.authService.sendConfirmationEmail(newUser);
     return newUser;
   }
 
