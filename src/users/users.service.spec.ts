@@ -24,11 +24,9 @@ describe('UsersService', () => {
           useValue: {
             user: {
               create: jest.fn(),
+              findUnique: jest.fn(),
               findUniqueOrThrow: jest.fn(),
               update: jest.fn(),
-            },
-            gameHistory: {
-              aggregate: jest.fn(),
             },
           },
         },
@@ -94,33 +92,15 @@ describe('UsersService', () => {
   });
 
   describe('findByEmail', () => {
-    it('should return the user if email exists', async () => {
-      jest.spyOn(prisma.user, 'findUniqueOrThrow').mockResolvedValue(user);
+    it('should return null if email does not exist', async () => {
+      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
       const result = await service.findByEmail(user.email);
-      expect(result).toEqual(user);
+      expect(result).toBeNull();
     });
 
-    it('should throw an error if email does not exist', async () => {
-      jest
-        .spyOn(prisma.user, 'findUniqueOrThrow')
-        .mockRejectedValue(
-          new Prisma.PrismaClientKnownRequestError(
-            'An operation failed because it depends on one or more records that were required but not found.',
-            { code: PrismaError.RecordNotFound, clientVersion: '5.0' },
-          ),
-        );
-      expect(service.findByEmail(user.email)).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-
-    it('should throw a server error if other error is thrown', async () => {
-      jest
-        .spyOn(prisma.user, 'findUniqueOrThrow')
-        .mockRejectedValue('some error');
-      expect(service.findByEmail(user.email)).rejects.toThrow(
-        InternalServerErrorException,
-      );
+    it('should return the user if email is found', async () => {
+      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(user);
+      expect(service.findByEmail(user.email)).resolves.toEqual(user);
     });
   });
 
@@ -145,20 +125,6 @@ describe('UsersService', () => {
       );
     });
 
-    it('should throw an error if username exists', async () => {
-      jest
-        .spyOn(prisma.user, 'update')
-        .mockRejectedValue(
-          new Prisma.PrismaClientKnownRequestError(
-            'ERROR: duplicate key value violates unique constraint "username"',
-            { clientVersion: '5.0', code: PrismaError.UniqueViolation },
-          ),
-        );
-      expect(service.update(user.id, { name: user.name })).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-
     it('should throw an error if email exists', async () => {
       jest
         .spyOn(prisma.user, 'update')
@@ -178,6 +144,17 @@ describe('UsersService', () => {
       expect(service.update(user.id, { name: user.name })).rejects.toThrow(
         InternalServerErrorException,
       );
+    });
+  });
+
+  describe('confirmEmail', () => {
+    it('should confirm the user email in the database', async () => {
+      jest.spyOn(prisma.user, 'update').mockResolvedValue(user);
+      await service.confirmEmail(user.id);
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: user.id },
+        data: { confirmedAt: expect.any(Date) },
+      });
     });
   });
 

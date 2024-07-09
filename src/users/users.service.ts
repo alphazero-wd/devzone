@@ -4,20 +4,14 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { File, Prisma, User } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { PrismaError } from '../prisma/error.enum';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto, UpdateUserDto } from './dto';
-import { StorageService } from '../storage/storage.service';
-import { UploadFileDto } from '../storage/dto';
-import { UserWithAvatar } from './types';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    private prisma: PrismaService,
-    private storageService: StorageService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
     try {
@@ -27,16 +21,8 @@ export class UsersService {
       return newUser;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === PrismaError.UniqueViolation) {
-          if (error.message.includes('username'))
-            throw new BadRequestException(
-              'User with that username already exists',
-            );
-          if (error.message.includes('email'))
-            throw new BadRequestException(
-              'User with that email already exists',
-            );
-        }
+        if (error.code === PrismaError.UniqueViolation)
+          throw new BadRequestException('User with that email already exists');
       }
 
       throw new InternalServerErrorException('Something went wrong');
@@ -101,17 +87,5 @@ export class UsersService {
           throw new NotFoundException('Cannot find user with the given id');
       throw new InternalServerErrorException('Something went wrong');
     }
-  }
-
-  async addAvatar(userId: number, uploadAvatarDto: UploadFileDto) {
-    const [result] = await this.storageService.create([uploadAvatarDto]);
-    const { id } = await this.storageService.findOne(result.Key);
-    await this.update(userId, { avatarId: id });
-  }
-
-  async removeAvatar(user: UserWithAvatar) {
-    if (!user.avatar)
-      throw new BadRequestException("You haven't uploaded an avatar");
-    await this.storageService.remove([user.avatar.key]);
   }
 }

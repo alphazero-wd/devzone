@@ -6,12 +6,14 @@ import { v4 } from 'uuid';
 import * as argon2 from 'argon2';
 import { UploadFileDto } from '../storage/dto';
 import { UserWithAvatar } from '../users/types';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class SettingsService {
   constructor(
     private usersService: UsersService,
     private mailService: MailService,
+    private storageService: StorageService,
   ) {}
 
   async updateName(userId: number, newName: string) {
@@ -22,12 +24,16 @@ export class SettingsService {
   }
 
   async updateAvatar(user: UserWithAvatar, uploadAvatarDto: UploadFileDto) {
-    if (user.avatarId) await this.usersService.removeAvatar(user);
-    await this.usersService.addAvatar(user.id, uploadAvatarDto);
+    if (user.avatarId) await this.storageService.remove([user.avatar.key]);
+    const [result] = await this.storageService.create([uploadAvatarDto]);
+    const { id } = await this.storageService.findOne(result.Key);
+    await this.usersService.update(user.id, { avatarId: id });
   }
 
   async deleteAvatar(user: UserWithAvatar) {
-    await this.usersService.removeAvatar(user);
+    if (!user.avatar)
+      throw new BadRequestException("You haven't uploaded an avatar");
+    await this.storageService.remove([user.avatar.key]);
   }
 
   async updatePassword(user: User, password: string, newPassword: string) {
