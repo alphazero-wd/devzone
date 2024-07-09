@@ -27,6 +27,7 @@ describe('UsersService', () => {
               findUnique: jest.fn(),
               findUniqueOrThrow: jest.fn(),
               update: jest.fn(),
+              delete: jest.fn(),
             },
           },
         },
@@ -182,6 +183,33 @@ describe('UsersService', () => {
         .spyOn(prisma.user, 'findUniqueOrThrow')
         .mockRejectedValue('some error');
       expect(service.findById(user.id)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+    });
+  });
+
+  describe('remove', () => {
+    it('should delete user', async () => {
+      jest.spyOn(prisma.user, 'delete').mockResolvedValue(user);
+      await service.remove(user.id);
+      expect(prisma.user.delete).toHaveBeenCalledWith({
+        where: { id: user.id },
+      });
+    });
+    it('should throw an error if user is not found', async () => {
+      jest
+        .spyOn(prisma.user, 'delete')
+        .mockRejectedValue(
+          new Prisma.PrismaClientKnownRequestError(
+            'An operation failed because it depends on one or more records that were required but not found.',
+            { code: PrismaError.RecordNotFound, clientVersion: '5.0' },
+          ),
+        );
+      expect(service.remove(user.id)).rejects.toThrow(NotFoundException);
+    });
+    it('should throw a server error if something goes wrong', async () => {
+      jest.spyOn(prisma.user, 'delete').mockRejectedValue('some error');
+      expect(service.remove(user.id)).rejects.toThrow(
         InternalServerErrorException,
       );
     });

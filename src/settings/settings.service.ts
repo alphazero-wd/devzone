@@ -25,8 +25,7 @@ export class SettingsService {
 
   async updateAvatar(user: UserWithAvatar, uploadAvatarDto: UploadFileDto) {
     if (user.avatarId) await this.storageService.remove([user.avatar.key]);
-    const [result] = await this.storageService.create([uploadAvatarDto]);
-    const { id } = await this.storageService.findOne(result.Key);
+    const [{ id }] = await this.storageService.upload([uploadAvatarDto]);
     await this.usersService.update(user.id, { avatarId: id });
   }
 

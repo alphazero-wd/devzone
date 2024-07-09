@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UploadFileDto } from './dto';
 import { ConfigService } from '@nestjs/config';
@@ -22,15 +27,19 @@ export class StorageService {
     });
   }
 
-  async create(uploadFilesDto: UploadFileDto[]) {
-    const uploadResults = await this.uploadToS3(uploadFilesDto);
-    await this.prisma.file.createMany({
-      data: uploadResults.map(({ Key, Location }) => ({
-        key: Key,
-        url: Location,
-      })),
-    });
-    return uploadResults;
+  async upload(uploadFilesDto: UploadFileDto[]) {
+    try {
+      const uploadResults = await this.uploadToS3(uploadFilesDto);
+      const files = await this.prisma.file.createManyAndReturn({
+        data: uploadResults.map(({ Key, Location }) => ({
+          key: Key,
+          url: Location,
+        })),
+      });
+      return files;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   private async uploadToS3(uploadFilesDto: UploadFileDto[]) {
@@ -52,28 +61,27 @@ export class StorageService {
     return uploadResults;
   }
 
-  async findOne(key: string) {
-    const file = await this.prisma.file.findUnique({
-      where: { key },
-    });
-    if (!file)
-      throw new NotFoundException({
-        success: false,
-        message: 'Cannot find file with the given key',
-      });
-    return file;
-  }
-
   async remove(keys: string[]) {
-    const command = new DeleteObjectsCommand({
-      Bucket: this.configService.get('AWS_BUCKET_NAME'),
-      Delete: {
-        Objects: keys.map((key) => ({
-          Key: key,
-        })),
-      },
-    });
-    await this.s3Client.send(command);
-    await this.prisma.file.deleteMany({ where: { key: { in: keys } } });
+    try {
+      const { count } = await this.prisma.file.deleteMany({
+        where: { key: { in: keys } },
+      });
+      if (count !== keys.length)
+        throw new BadRequestException(
+          'Cannot delete files as some of which are not found',
+        );
+      const command = new DeleteObjectsCommand({
+        Bucket: this.configService.get('AWS_BUCKET_NAME'),
+        Delete: {
+          Objects: keys.map((key) => ({
+            Key: key,
+          })),
+        },
+      });
+      await this.s3Client.send(command);
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      throw new InternalServerErrorException(error.message);
+    }
   }
 }
