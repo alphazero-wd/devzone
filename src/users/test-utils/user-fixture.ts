@@ -1,11 +1,14 @@
 import { faker } from '@faker-js/faker';
-import { User } from '@prisma/client';
+import { UserWithAvatar } from '../types';
 
-export const userFixture = (attrs?: Partial<User>): User => {
+export const userFixture = (
+  attrs?: Partial<UserWithAvatar>,
+): UserWithAvatar => {
   return {
     id: 1,
     email: faker.internet.email(),
     avatarId: null,
+    avatar: null,
     confirmedAt: null,
     newEmail: null,
     newEmailToken: null,

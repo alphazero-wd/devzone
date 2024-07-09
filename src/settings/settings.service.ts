@@ -60,7 +60,10 @@ export class SettingsService {
       [emailTypeToken]: null,
     });
     if (!updatedUser.oldEmailToken && !updatedUser.newEmailToken)
-      await this.usersService.update(user.id, { email: user.newEmail });
+      await this.usersService.update(user.id, {
+        email: user.newEmail,
+        newEmail: null,
+      });
   }
 
   async initEmailChangeConfirmation(user: User, newEmail: string) {

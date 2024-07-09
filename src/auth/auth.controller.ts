@@ -32,29 +32,6 @@ export class AuthController {
     return newUser;
   }
 
-  @UseGuards(CookieAuthGuard)
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @UseInterceptors(new TransformDataInterceptor(AuthResponse))
-  @Post('confirm-email')
-  async confirmEmail(
-    @CurrentUser() user: User,
-    @Body() { token }: ConfirmEmailDto,
-  ) {
-    if (user.confirmedAt)
-      throw new BadRequestException('You have already confirmed your email');
-    await this.authService.confirmEmail(user.id, token);
-  }
-
-  @UseGuards(CookieAuthGuard)
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @UseInterceptors(new TransformDataInterceptor(AuthResponse))
-  @Post('resend-confirmation')
-  async resendConfirmEmail(@CurrentUser() user: User) {
-    if (user.confirmedAt)
-      throw new BadRequestException('You have already confirmed your email');
-    await this.authService.sendConfirmationEmail(user);
-  }
-
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(new TransformDataInterceptor(AuthResponse))
   @UseGuards(LocalAuthGuard)
@@ -76,6 +53,29 @@ export class AuthController {
   logout(@Req() req: Request) {
     req.logOut(() => {});
     req.session.cookie.maxAge = 0;
+  }
+
+  @UseGuards(CookieAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseInterceptors(new TransformDataInterceptor(AuthResponse))
+  @Post('confirm-email')
+  async confirmEmail(
+    @CurrentUser() user: User,
+    @Body() { token }: ConfirmEmailDto,
+  ) {
+    if (user.confirmedAt)
+      throw new BadRequestException('You have already confirmed your email');
+    await this.authService.confirmEmail(user.id, token);
+  }
+
+  @UseGuards(CookieAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseInterceptors(new TransformDataInterceptor(AuthResponse))
+  @Post('resend-confirmation')
+  async resendConfirmEmail(@CurrentUser() user: User) {
+    if (user.confirmedAt)
+      throw new BadRequestException('You have already confirmed your email');
+    await this.authService.sendConfirmationEmail(user);
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
