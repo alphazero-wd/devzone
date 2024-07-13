@@ -1,19 +1,16 @@
 import { useState } from "react";
 import { FileWithPreview } from "@/features/common/types";
-import { createClient } from "@/lib/supabase/client";
-import { BUCKET_ID } from "@/constants";
 import { useToast } from "@/features/ui/use-toast";
-import { format } from "date-fns/format";
 import { useRouter } from "next/navigation";
-import { useDeleteImage } from "./use-delete";
+import { deleteAvatar } from "./delete-avatar";
+import { uploadAvatar } from "./upload-avatar";
+import { Avatar } from "@/features/users/types";
 
-export const useUploadImage = (profileId: string, avatar?: string) => {
-  const supabase = createClient();
+export const useUploadImage = (avatar: Avatar | null) => {
   const { toast } = useToast();
   const [newImage, setNewImage] = useState<FileWithPreview | null>(null);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const deleteImage = useDeleteImage();
 
   const onImageChange = (image?: File) => {
     if (!image) return;
@@ -29,31 +26,15 @@ export const useUploadImage = (profileId: string, avatar?: string) => {
 
   const uploadImage = async () => {
     if (!newImage) return;
-    if (avatar) await deleteImage(avatar);
-    const uploadedAt = format(new Date(), "yMMddHHmmss");
-    const path = `avatars/${uploadedAt}_${profileId}_${newImage.name}`;
+    if (avatar) await deleteAvatar();
     try {
-      const { data, error } = await supabase.storage
-        .from(BUCKET_ID)
-        .upload(path, newImage, {
-          contentType: "image/jpeg",
-        });
-      if (error) throw error;
-      if (data) {
-        const { error } = await supabase
-          .from("profiles")
-          .update({
-            avatar: data.path,
-          })
-          .eq("user_id", profileId);
-        if (error) throw error;
-        toast({
-          variant: "success",
-          title: "Avatar updated successfully",
-        });
-        router.refresh();
-        clearPreviewImage();
-      }
+      await uploadAvatar(newImage);
+      toast({
+        variant: "success",
+        title: "Avatar updated successfully",
+      });
+      router.refresh();
+      clearPreviewImage();
     } catch (error: any) {
       showError(error.message);
     } finally {

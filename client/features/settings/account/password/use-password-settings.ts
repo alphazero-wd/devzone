@@ -2,9 +2,10 @@ import * as z from "zod";
 import { PASSWORD_REGEX } from "@/constants";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { useToast } from "@/features/ui/use-toast";
+import { AxiosError } from "axios";
+import { updatePassword } from "./update-password";
 
 const formSchema = z
   .object({
@@ -22,7 +23,6 @@ const formSchema = z
   });
 
 export const usePasswordSettings = () => {
-  const supabase = createClient();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -34,44 +34,34 @@ export const usePasswordSettings = () => {
     },
   });
 
-  const validatePassword = async (oldPassword: string) => {
-    const { error } = await supabase.rpc("validate_user_password", {
-      plain_password: oldPassword,
-    });
-    return error;
-  };
-  const updatePassword = async (newPassword: string) => {
-    const { error: passwordUpdateError } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-    if (passwordUpdateError)
-      toast({
-        variant: "error",
-        title: "Password update failed!",
-        description: passwordUpdateError.message,
-      });
-    else
-      toast({
-        variant: "success",
-        title: "Password updated successfully",
-      });
-    form.reset();
-    setLoading(false);
-  };
-
   const onSubmit = async ({
     password,
     newPassword,
   }: z.infer<typeof formSchema>) => {
     setLoading(true);
     setTimeout(async () => {
-      const error = await validatePassword(password);
-      if (error) {
-        form.setError("password", { message: error.message });
+      try {
+        await updatePassword(password, newPassword);
+        toast({
+          variant: "success",
+          title: "Password updated successfully",
+        });
+        form.reset();
+      } catch (error: any) {
+        if (error instanceof AxiosError && error.response?.status === 400) {
+          form.setError("password", { message: error.response.data.message });
+        } else
+          toast({
+            variant: "error",
+            title: "Failed to update password",
+            description:
+              error instanceof AxiosError
+                ? error.response?.data.message
+                : error?.message,
+          });
+      } finally {
         setLoading(false);
-        return;
       }
-      await updatePassword(newPassword);
     }, 2000);
   };
   return { loading, form, onSubmit };

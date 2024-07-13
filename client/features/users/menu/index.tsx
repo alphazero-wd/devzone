@@ -24,7 +24,7 @@ export const UserMenu = ({ user }: UserMenuProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
-        <ProfileAvatar name={user.name} avatar={user.avatar?.url} />
+        <ProfileAvatar name={user.name} avatarUrl={user.avatar?.url} />
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuGroup>

@@ -61,11 +61,18 @@ export class SettingsService {
     const updatedUser = await this.usersService.update(user.id, {
       [tokenType]: null,
     });
-    if (!updatedUser.oldEmailToken && !updatedUser.newEmailToken)
+    if (!updatedUser.oldEmailToken && !updatedUser.newEmailToken) {
       await this.usersService.update(user.id, {
         email: user.newEmail,
         newEmail: null,
       });
+      return { message: 'Your email has been successfully updated' };
+    } else {
+      const opposite = emailType === 'old' ? 'new' : 'old';
+      return {
+        message: `Confirm your ${emailType} email successfully. Now confirm the token sent to your ${opposite} email`,
+      };
+    }
   }
 
   async initEmailChangeConfirmation(user: User, newEmail: string) {

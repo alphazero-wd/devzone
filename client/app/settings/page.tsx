@@ -1,16 +1,13 @@
 import { SettingsClient } from "@/features/settings";
-import { createClient } from "@/lib/supabase/server";
-import { getProfile, getUser } from "@/features/users/actions";
+import { getUser } from "@/features/users/actions";
 import { redirect } from "next/navigation";
 import { Button } from "@/features/ui/button";
 import Link from "next/link";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
 
 export default async function SettingsPage() {
-  const supabase = createClient();
-  const user = await getUser(supabase);
+  const user = await getUser();
   if (!user) redirect("/auth/login");
-  const profile = await getProfile(supabase, user?.id);
 
   return (
     <main className="flex flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10">
@@ -28,7 +25,7 @@ export default async function SettingsPage() {
           </Button>
           <h1 className="text-xl tracking-tight font-bold">Settings</h1>
         </div>
-        <SettingsClient user={user} profile={profile} />
+        <SettingsClient user={user} />
       </div>
     </main>
   );

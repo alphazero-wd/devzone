@@ -4,28 +4,24 @@ import { Spinner } from "@/features/ui/spinner";
 import { useUploadImage } from "./use-upload";
 import { ProfileAvatar } from "@/features/users/avatar";
 import { useDropzone } from "react-dropzone";
-import { createClient } from "@/lib/supabase/client";
 import { useDeleteAvatarDialog } from "./use-delete-dialog";
 import { MouseEventHandler } from "react";
 import { DeleteAvatarDialog } from "./delete-dialog";
 import { ImageDropzone } from "@/features/common/components/dropzone";
 import { XIcon } from "lucide-react";
+import { Avatar } from "@/features/users/types";
 
 interface ProfileAvatarSettingsProps {
-  profileId: string;
-  firstName: string;
-  lastName: string;
-  avatar?: string;
+  name: string;
+  avatar: Avatar | null;
 }
 
 export const ProfileAvatarSettings = ({
-  profileId,
   avatar,
-  firstName,
-  lastName,
+  name,
 }: ProfileAvatarSettingsProps) => {
   const { loading, newImage, onImageChange, onUploadImage, clearPreviewImage } =
-    useUploadImage(profileId, avatar);
+    useUploadImage(avatar);
   const onOpen = useDeleteAvatarDialog((state) => state.onOpen);
 
   const { isDragActive, getInputProps, getRootProps } = useDropzone({
@@ -69,9 +65,8 @@ export const ProfileAvatarSettings = ({
         />
         <ProfileAvatar
           isPreview={!!newImage}
-          firstName={firstName}
-          lastName={lastName}
-          avatar={newImage?.preview || avatar}
+          name={name}
+          avatarUrl={newImage?.preview || avatar?.url}
           size="lg"
         />
       </div>
@@ -89,13 +84,7 @@ export const ProfileAvatarSettings = ({
           {loading && <Spinner />} {loading ? "Updating..." : "Update"}
         </Button>
       </div>
-      {avatar && (
-        <DeleteAvatarDialog
-          clearPreviewImage={clearPreviewImage}
-          avatar={avatar}
-          profileId={profileId}
-        />
-      )}
+      {avatar && <DeleteAvatarDialog clearPreviewImage={clearPreviewImage} />}
     </section>
   );
 };

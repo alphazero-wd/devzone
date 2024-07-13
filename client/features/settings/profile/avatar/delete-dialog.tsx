@@ -8,51 +8,49 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/features/ui/dialog";
-import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/features/ui/use-toast";
 import { useDeleteAvatarDialog } from "./use-delete-dialog";
-import { useDeleteImage } from "./use-delete";
-
-const supabase = createClient();
+import { deleteAvatar } from "./delete-avatar";
+import { AxiosError } from "axios";
+import { useState } from "react";
+import { Spinner } from "@/features/ui/spinner";
 
 interface DeleteAvatarDialogProps {
-  avatar: string;
-  profileId: string;
   clearPreviewImage: () => void;
 }
 
 export const DeleteAvatarDialog = ({
-  avatar,
-  profileId,
   clearPreviewImage,
 }: DeleteAvatarDialogProps) => {
   const router = useRouter();
-  const deleteAvatar = useDeleteImage();
   const { toast } = useToast();
   const { isOpen, onClose } = useDeleteAvatarDialog();
+  const [loading, setLoading] = useState(false);
 
-  const onDeletePost = async () => {
-    const { data, error } = await deleteAvatar(avatar);
-    if (data) {
-      const { dismiss } = toast({
-        variant: "success",
-        title: "Delete avatar successfully!",
-      });
-      const { data, error } = await supabase
-        .from("profiles")
-        .update({
-          avatar: null,
-        })
-        .eq("user_id", profileId);
-      if (data) setTimeout(dismiss, 2000);
-      if (error) showError(error.message);
-    }
-
-    if (error) showError(error.message);
-    clearPreviewImage();
-    router.refresh();
-    onClose();
+  const onDeletePost = () => {
+    setLoading(true);
+    setTimeout(async () => {
+      try {
+        await deleteAvatar();
+        const { dismiss } = toast({
+          variant: "success",
+          title: "Delete avatar successfully!",
+        });
+        setTimeout(dismiss, 2000);
+        clearPreviewImage();
+        router.refresh();
+        onClose();
+      } catch (error: any) {
+        showError(
+          error instanceof AxiosError
+            ? error.response?.data.message
+            : error.message
+        );
+      } finally {
+        setLoading(false);
+      }
+    }, 2000);
   };
 
   const showError = (message: string) => {
@@ -74,11 +72,17 @@ export const DeleteAvatarDialog = ({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" disabled={loading} onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={onDeletePost}>
-            Continue
+          <Button
+            variant="destructive"
+            onClick={onDeletePost}
+            className="w-fit gap-x-2"
+            type="submit"
+            disabled={loading}
+          >
+            {loading && <Spinner />} {loading ? "Deleting..." : "Continue"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -13,11 +13,15 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { SettingsService } from './settings.service';
-import { CookieAuthGuard, EmailConfirmAuthGuard } from '../auth/guards';
-import { CurrentUser } from '../users/decorators';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { User } from '@prisma/client';
-import { ConfirmEmailDto } from '../auth/dto';
+import { CookieAuthGuard, EmailConfirmAuthGuard } from '../auth/guards';
+import {
+  ALLOWED_IMAGE_MIME_TYPES,
+  MAX_AVATAR_FILE_SIZE,
+} from '../common/constants';
+import { CurrentUser } from '../users/decorators';
+import { UserWithAvatar } from '../users/types';
 import {
   ConfirmEmailChangeDto,
   DeleteAccountDto,
@@ -25,13 +29,7 @@ import {
   UpdateNameDto,
   UpdatePasswordDto,
 } from './dto';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { Express } from 'express';
-import { UserWithAvatar } from '../users/types';
-import {
-  ALLOWED_IMAGE_MIME_TYPES,
-  MAX_AVATAR_FILE_SIZE,
-} from '../common/constants';
+import { SettingsService } from './settings.service';
 
 @Controller('settings')
 export class SettingsController {
@@ -75,12 +73,13 @@ export class SettingsController {
   }
 
   @UseGuards(CookieAuthGuard)
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
+  @Post('account/email/confirm-change')
   async confirmEmailToken(
     @CurrentUser() user: User,
     @Body() { token, emailType }: ConfirmEmailChangeDto,
   ) {
-    await this.settingsService.confirmEmailToken(user, token, emailType);
+    return this.settingsService.confirmEmailToken(user, token, emailType);
   }
 
   @UseGuards(EmailConfirmAuthGuard())

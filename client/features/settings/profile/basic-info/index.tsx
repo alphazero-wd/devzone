@@ -8,14 +8,12 @@ import {
 import { BasicInfoForm } from "./form";
 
 interface ProfileSettingsBasicInfoProps {
-  profileId: string;
-  firstName: string;
-  lastName: string;
+  name: string;
 }
 
-export const ProfileSettingsBasicInfo = (
-  props: ProfileSettingsBasicInfoProps
-) => {
+export const ProfileSettingsBasicInfo = ({
+  name,
+}: ProfileSettingsBasicInfoProps) => {
   return (
     <Card>
       <CardHeader>
@@ -23,7 +21,7 @@ export const ProfileSettingsBasicInfo = (
         <CardDescription>Update your first name and last name</CardDescription>
       </CardHeader>
       <CardContent>
-        <BasicInfoForm {...props} />
+        <BasicInfoForm name={name} />
       </CardContent>
     </Card>
   );

@@ -3,13 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-interface ConfirmAccountClientProps {
+interface ConfirmEmailChangeClientProps {
   success: boolean;
 }
 
-export const ConfirmAccountClient = ({
+export const ConfirmEmailChangeClient = ({
   success,
-}: ConfirmAccountClientProps) => {
+}: ConfirmEmailChangeClientProps) => {
   const router = useRouter();
   useEffect(() => {
     if (success) {

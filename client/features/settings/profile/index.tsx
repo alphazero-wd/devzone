@@ -1,4 +1,4 @@
-import { Profile } from "@/features/users/types";
+import { Profile, User } from "@/features/users/types";
 import { ProfileSettingsBasicInfo } from "./basic-info";
 import { ProfileAvatarSettings } from "./avatar";
 import {
@@ -10,29 +10,20 @@ import {
 } from "@/features/ui/card";
 
 interface ProfileSettingsProps {
-  profile: Profile;
+  user: User;
 }
 
-export const ProfileSettings = ({ profile }: ProfileSettingsProps) => {
+export const ProfileSettings = ({ user }: ProfileSettingsProps) => {
   return (
     <div className="grid gap-y-4">
-      <ProfileSettingsBasicInfo
-        profileId={profile.user_id}
-        firstName={profile.first_name}
-        lastName={profile.last_name}
-      />
+      <ProfileSettingsBasicInfo name={user.name} />
       <Card>
         <CardHeader>
           <CardTitle>Profile image</CardTitle>
           <CardDescription>Change your profile avatar</CardDescription>
         </CardHeader>
         <CardContent>
-          <ProfileAvatarSettings
-            profileId={profile.user_id}
-            firstName={profile.first_name}
-            lastName={profile.last_name}
-            avatar={profile.avatar}
-          />
+          <ProfileAvatarSettings name={user.name} avatar={user.avatar} />
         </CardContent>
       </Card>
     </div>

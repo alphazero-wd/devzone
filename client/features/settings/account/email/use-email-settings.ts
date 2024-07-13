@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useToast } from "@/features/ui/use-toast";
+import { initEmailChangeConfirmation } from "./init-email-change";
+import { AxiosError } from "axios";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email" }),
@@ -24,28 +26,30 @@ export const useEmailSettings = (email: string) => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true);
-    setTimeout(() => sendVerifyEmail(values.email), 2000);
+    setTimeout(() => sendConfirmationEmail(values.email), 2000);
   };
 
-  const sendVerifyEmail = async (newEmail: string) => {
-    const { data, error } = await supabase.auth.updateUser({
-      email: newEmail,
-    });
+  const sendConfirmationEmail = async (newEmail: string) => {
+    try {
+      await initEmailChangeConfirmation(newEmail);
 
-    if (error)
+      toast({
+        variant: "info",
+        title: "Confirm your email",
+        description: "Click on the links sent to " + email + " and " + newEmail,
+      });
+    } catch (error: any) {
       toast({
         variant: "error",
         title: "Email update failed!",
-        description: error.message,
+        description:
+          error instanceof AxiosError
+            ? error.response?.data.message
+            : error.message,
       });
-    else if (data.user) {
-      toast({
-        variant: "info",
-        title: "Verify your email",
-        description: "Click on the links sent to " + email + " and " + newEmail,
-      });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return {

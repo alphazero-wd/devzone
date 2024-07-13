@@ -1,17 +1,15 @@
 "use client";
-import { User } from "@supabase/supabase-js";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { Profile } from "../users/types";
 import { ProfileSettings } from "./profile";
 import { AccountSettings } from "./account";
+import { User } from "../users/types";
 
 interface SettingsClientProps {
-  profile: Profile | null;
   user: User | null;
 }
 
-export const SettingsClient = ({ profile, user }: SettingsClientProps) => {
-  if (!profile || !user) return null;
+export const SettingsClient = ({ user }: SettingsClientProps) => {
+  if (!user) return null;
   return (
     <Tabs defaultValue="profile">
       <TabsList>
@@ -19,7 +17,7 @@ export const SettingsClient = ({ profile, user }: SettingsClientProps) => {
         <TabsTrigger value="account">Account</TabsTrigger>
       </TabsList>
       <TabsContent value="profile">
-        <ProfileSettings profile={profile} />
+        <ProfileSettings user={user} />
       </TabsContent>
       <TabsContent value="account">
         <AccountSettings user={user} />

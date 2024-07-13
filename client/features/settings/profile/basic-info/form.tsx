@@ -1,55 +1,48 @@
 "use client";
 import { Label } from "@/features/ui/label";
 import { Button } from "@/features/ui/button";
-import { Form, FormField, FormItem } from "@/features/ui/form";
+import {
+  Form,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/features/ui/form";
 import { Input } from "@/features/ui/input";
 import { Spinner } from "@/features/ui/spinner";
 import { useBasicInfoForm } from "./use-basic-info";
+import { NAME_MAX_LENGTH } from "@/constants";
 
 interface BasicInfoFormProps {
-  profileId: string;
-  firstName: string;
-  lastName: string;
+  name: string;
 }
 
-export const BasicInfoForm = (props: BasicInfoFormProps) => {
-  const { form, loading, onSubmit, cancelChanges } = useBasicInfoForm(props);
+export const BasicInfoForm = ({ name }: BasicInfoFormProps) => {
+  const { form, loading, onSubmit, cancelChanges } = useBasicInfoForm({ name });
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="firstName"
-            render={({ field }) => (
-              <FormItem className="grid gap-2">
-                <Label htmlFor="firstName">First name</Label>
-                <Input
-                  disabled={loading}
-                  {...field}
-                  id="firstName"
-                  placeholder="Max"
-                />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="lastName"
-            render={({ field }) => (
-              <FormItem className="grid gap-2">
-                <Label htmlFor="lastName">Last name</Label>
-                <Input
-                  disabled={loading}
-                  {...field}
-                  id="lastName"
-                  placeholder="Robinson"
-                />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem className="grid gap-2">
+              <Label htmlFor="firstName">Your name</Label>
+              <Input
+                disabled={loading}
+                {...field}
+                id="firstName"
+                placeholder="Max"
+              />
+              <FormDescription>
+                {Math.max(NAME_MAX_LENGTH - field.value.length, 0)} characters
+                remaining
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div className="flex gap-x-4">
           <Button
