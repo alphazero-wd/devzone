@@ -18,7 +18,13 @@ import { CookieAuthGuard, EmailConfirmAuthGuard } from '../auth/guards';
 import { CurrentUser } from '../users/decorators';
 import { User } from '@prisma/client';
 import { ConfirmEmailDto } from '../auth/dto';
-import { UpdateEmailDto, UpdateNameDto, UpdatePasswordDto } from './dto';
+import {
+  ConfirmEmailChangeDto,
+  DeleteAccountDto,
+  UpdateEmailDto,
+  UpdateNameDto,
+  UpdatePasswordDto,
+} from './dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { UserWithAvatar } from '../users/types';
@@ -51,8 +57,11 @@ export class SettingsController {
   @UseGuards(CookieAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete('account/delete')
-  async deleteAccount(@CurrentUser() user: User) {
-    await this.settingsService.deleteAccount(user.id);
+  async deleteAccount(
+    @CurrentUser() user: User,
+    @Body() { password }: DeleteAccountDto,
+  ) {
+    await this.settingsService.deleteAccount(user, password);
   }
 
   @UseGuards(CookieAuthGuard)
@@ -67,22 +76,11 @@ export class SettingsController {
 
   @UseGuards(CookieAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Post('confirm/old-email')
-  async confirmOldEmail(
+  async confirmEmailToken(
     @CurrentUser() user: User,
-    @Body() { token }: ConfirmEmailDto,
+    @Body() { token, emailType }: ConfirmEmailChangeDto,
   ) {
-    await this.settingsService.confirmEmailToken(user, token, 'oldEmailToken');
-  }
-
-  @UseGuards(CookieAuthGuard)
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @Post('confirm/new-email')
-  async confirmNewEmail(
-    @CurrentUser() user: User,
-    @Body() { token }: ConfirmEmailDto,
-  ) {
-    await this.settingsService.confirmEmailToken(user, token, 'newEmailToken');
+    await this.settingsService.confirmEmailToken(user, token, emailType);
   }
 
   @UseGuards(EmailConfirmAuthGuard())

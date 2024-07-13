@@ -2,7 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/features/ui/use-toast";
 
 const formSchema = z.object({
@@ -10,7 +9,6 @@ const formSchema = z.object({
 });
 
 export const useEmailSettings = (email: string) => {
-  const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({

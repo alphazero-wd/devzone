@@ -1,11 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UpdateEmailDto, UpdateNameDto, UpdatePasswordDto } from './dto';
-import { SettingsController } from './settings.controller';
-import { SettingsService } from './settings.service';
 import { User } from '@prisma/client';
 import { userFixture } from '../users/test-utils';
-import { ConfirmEmailDto } from '../auth/dto';
-import { UserWithAvatar } from '../users/types';
+import {
+  ConfirmEmailChangeDto,
+  UpdateEmailDto,
+  UpdateNameDto,
+  UpdatePasswordDto,
+} from './dto';
+import { SettingsController } from './settings.controller';
+import { SettingsService } from './settings.service';
 
 describe('SettingsController', () => {
   let settingsController: SettingsController;
@@ -68,11 +71,12 @@ describe('SettingsController', () => {
 
   describe('deleteAccount', () => {
     it('should delete the user account', async () => {
-      const user: User = { id: 1 } as User;
+      await settingsController.deleteAccount(user, { password: user.password });
 
-      await settingsController.deleteAccount(user);
-
-      expect(settingsService.deleteAccount).toHaveBeenCalledWith(user.id);
+      expect(settingsService.deleteAccount).toHaveBeenCalledWith(
+        user,
+        user.password,
+      );
     });
   });
 
@@ -89,30 +93,33 @@ describe('SettingsController', () => {
     });
   });
 
-  describe('confirmOldEmail', () => {
+  describe('confirmEmailToken', () => {
     it('should confirm old email token', async () => {
-      const confirmEmailDto: ConfirmEmailDto = { token: 'old-token' };
+      const confirmEmailDto: ConfirmEmailChangeDto = {
+        token: 'old-token',
+        emailType: 'old',
+      };
 
-      await settingsController.confirmOldEmail(user, confirmEmailDto);
+      await settingsController.confirmEmailToken(user, confirmEmailDto);
 
       expect(settingsService.confirmEmailToken).toHaveBeenCalledWith(
         user,
         confirmEmailDto.token,
-        'oldEmailToken',
+        'old',
       );
     });
-  });
-
-  describe('confirmNewEmail', () => {
     it('should confirm new email token', async () => {
-      const confirmEmailDto: ConfirmEmailDto = { token: 'new-token' };
+      const confirmEmailDto: ConfirmEmailChangeDto = {
+        token: 'new-token',
+        emailType: 'new',
+      };
 
-      await settingsController.confirmNewEmail(user, confirmEmailDto);
+      await settingsController.confirmEmailToken(user, confirmEmailDto);
 
       expect(settingsService.confirmEmailToken).toHaveBeenCalledWith(
         user,
         confirmEmailDto.token,
-        'newEmailToken',
+        'new',
       );
     });
   });

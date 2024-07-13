@@ -69,11 +69,12 @@ describe('MailService', () => {
 
   describe('sendChangeEmailConfirmation', () => {
     it('should send email change confirmation to the right recipient with correct payload', async () => {
-      const url = `${CORS_ORIGIN}/confirm/email-change?token=${MOCK_TOKEN}`;
+      const url = `${CORS_ORIGIN}/confirm/email-change?type=old&token=${MOCK_TOKEN}`;
       await service.sendChangeEmailConfirmation(
         user.email,
         user.name,
         MOCK_TOKEN,
+        'old',
       );
       expect(mailer.sendMail).toHaveBeenCalledWith({
         to: user.email,

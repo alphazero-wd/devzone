@@ -36,28 +36,30 @@ export class SettingsService {
   }
 
   async updatePassword(user: User, password: string, newPassword: string) {
-    const isValidPassword = await argon2.verify(user.password, password);
-    if (!isValidPassword)
-      throw new BadRequestException('Incorrect password provided');
+    await this.validatePassword(password, user.password);
     const hashedPassword = await argon2.hash(newPassword);
     await this.usersService.update(user.id, {
       password: hashedPassword,
     });
   }
 
-  async deleteAccount(userId: number) {
-    await this.usersService.remove(userId);
+  private async validatePassword(plain: string, hash: string) {
+    const isValidPassword = await argon2.verify(hash, plain);
+    if (!isValidPassword)
+      throw new BadRequestException('Incorrect password provided');
   }
 
-  async confirmEmailToken(
-    user: User,
-    token: string,
-    emailTypeToken: 'oldEmailToken' | 'newEmailToken',
-  ) {
-    if (user[emailTypeToken] !== token)
+  async deleteAccount(user: User, password: string) {
+    await this.validatePassword(password, user.password);
+    await this.usersService.remove(user.id);
+  }
+
+  async confirmEmailToken(user: User, token: string, emailType: 'old' | 'new') {
+    const tokenType = `${emailType}EmailToken`;
+    if (user[tokenType] !== token)
       throw new BadRequestException('Invalid token provided');
     const updatedUser = await this.usersService.update(user.id, {
-      [emailTypeToken]: null,
+      [tokenType]: null,
     });
     if (!updatedUser.oldEmailToken && !updatedUser.newEmailToken)
       await this.usersService.update(user.id, {
@@ -81,11 +83,13 @@ export class SettingsService {
       user.email,
       user.name,
       oldEmailToken,
+      'old',
     );
     await this.mailService.sendChangeEmailConfirmation(
       newEmail,
       user.name,
       newEmailToken,
+      'new',
     );
   }
 }

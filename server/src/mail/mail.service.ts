@@ -30,8 +30,13 @@ export class MailService {
       context: { name, url },
     });
   }
-  async sendChangeEmailConfirmation(to: string, name: string, token: string) {
-    const url = `${this.configService.get('CORS_ORIGIN')}/confirm/email-change?token=${token}`;
+  async sendChangeEmailConfirmation(
+    to: string,
+    name: string,
+    token: string,
+    emailType: 'old' | 'new',
+  ) {
+    const url = `${this.configService.get('CORS_ORIGIN')}/confirm/email-change?type=${emailType}&token=${token}`;
 
     await this.mailerService.sendMail({
       to,

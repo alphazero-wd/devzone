@@ -1,15 +1,14 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { SettingsService } from './settings.service';
-import { UsersService } from '../users/users.service';
-import { MailService } from '../mail/mail.service';
-import { StorageService } from '../storage/storage.service';
-import { Prisma, User } from '@prisma/client';
-import { UploadFileDto } from '../storage/dto';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { User } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { v4 as uuidv4 } from 'uuid';
+import { MailService } from '../mail/mail.service';
+import { UploadFileDto } from '../storage/dto';
+import { StorageService } from '../storage/storage.service';
 import { userFixture } from '../users/test-utils';
-import { PrismaError } from '../prisma/error.enum';
+import { UsersService } from '../users/users.service';
+import { SettingsService } from './settings.service';
 
 jest.mock('argon2');
 jest.mock('uuid', () => ({
@@ -160,19 +159,32 @@ describe('SettingsService', () => {
   });
 
   describe('deleteAccount', () => {
+    it('should throw BadRequestException if the current password is incorrect', async () => {
+      const password = 'wrong-password';
+
+      (argon2.verify as jest.Mock).mockResolvedValue(false);
+
+      await expect(
+        settingsService.deleteAccount(user, password),
+      ).rejects.toThrow(BadRequestException);
+    });
     it('should throw an error if user is not found', () => {
+      const password = 'right-password';
+      (argon2.verify as jest.Mock).mockResolvedValue(true);
       (usersService.remove as jest.Mock).mockRejectedValue(
         new NotFoundException(),
       );
 
-      expect(settingsService.deleteAccount(user.id)).rejects.toThrow(
+      expect(settingsService.deleteAccount(user, password)).rejects.toThrow(
         NotFoundException,
       );
     });
     it('should delete the user account', async () => {
+      const password = 'right-password';
+      (argon2.verify as jest.Mock).mockResolvedValue(true);
       (usersService.remove as jest.Mock).mockResolvedValue(null);
 
-      await settingsService.deleteAccount(user.id);
+      await settingsService.deleteAccount(user, password);
 
       expect(usersService.remove).toHaveBeenCalledWith(user.id);
     });
@@ -185,14 +197,10 @@ describe('SettingsService', () => {
         newEmailToken: 'new-token',
       });
       const token = 'invalid-token';
-      const emailTypeToken = 'oldEmailToken';
+      const emailType = 'old';
 
       await expect(
-        settingsService.confirmEmailToken(
-          confirmingUser,
-          token,
-          emailTypeToken,
-        ),
+        settingsService.confirmEmailToken(confirmingUser, token, emailType),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -203,21 +211,17 @@ describe('SettingsService', () => {
         newEmail: 'new@example.com',
       });
       const token = 'old-token';
-      const emailTypeToken = 'oldEmailToken';
+      const emailType = 'old';
 
       (usersService.update as jest.Mock).mockResolvedValue({
         ...confirmedUser,
         oldEmailToken: null,
       });
 
-      await settingsService.confirmEmailToken(
-        confirmedUser,
-        token,
-        emailTypeToken,
-      );
+      await settingsService.confirmEmailToken(confirmedUser, token, emailType);
 
       expect(usersService.update).toHaveBeenCalledWith(user.id, {
-        [emailTypeToken]: null,
+        [`${emailType}EmailToken`]: null,
       });
     });
 
@@ -228,7 +232,7 @@ describe('SettingsService', () => {
         newEmail: 'new@example.com',
       });
       const token = 'new-token';
-      const emailTypeToken = 'newEmailToken';
+      const emailTypeToken = 'new';
 
       (usersService.update as jest.Mock).mockResolvedValue({
         ...confirmedUser,
@@ -284,11 +288,13 @@ describe('SettingsService', () => {
         user.email,
         user.name,
         oldEmailToken,
+        'old',
       );
       expect(mailService.sendChangeEmailConfirmation).toHaveBeenCalledWith(
         newEmail,
         user.name,
         newEmailToken,
+        'new',
       );
     });
   });
