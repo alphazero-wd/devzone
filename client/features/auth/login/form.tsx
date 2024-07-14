@@ -37,7 +37,7 @@ export const LoginForm = () => {
                 <div className="flex justify-between items-center">
                   <Label htmlFor="password">Password</Label>
                   <Link
-                    href="/auth/forgot-password"
+                    href="/auth/password/forgot"
                     className="ml-auto inline-block text-sm underline"
                   >
                     Forgot your password?

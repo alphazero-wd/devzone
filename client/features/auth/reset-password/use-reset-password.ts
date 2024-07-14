@@ -1,13 +1,12 @@
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 import { useToast } from "@/features/ui/use-toast";
-import { createClient } from "@/lib/supabase/client";
-import { PASSWORD_REGEX } from "@/constants";
-
-const supabase = createClient();
+import { PASSWORD_REGEX, UUID_REGEX } from "@/constants";
+import { resetPassword } from "./reset";
+import { AxiosError } from "axios";
 
 const formSchema = z
   .object({
@@ -36,14 +35,28 @@ export const useResetPassword = () => {
   });
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const token = useMemo(
+    () => searchParams.get("token"),
+    [searchParams.get("token")]
+  );
+
+  const validateToken = () => {
+    let message: string = "";
+    if (!token || !UUID_REGEX.test(token)) {
+      if (!token) message = "Token is missing";
+      else if (!UUID_REGEX.test(token)) message = "Invalid token";
+      throw new Error(message);
+    }
+  };
 
   function onSubmit({ password }: z.infer<typeof formSchema>) {
     setLoading(true);
     setTimeout(async () => {
       try {
-        const { error } = await supabase.auth.updateUser({ password });
-        if (error) throw new Error(error.message);
+        validateToken();
+        await resetPassword(password, token!);
         const { dismiss } = toast({
           variant: "success",
           title: "Password reset successfully",
@@ -57,10 +70,15 @@ export const useResetPassword = () => {
           router.replace("/");
         }, 2000);
       } catch (error: any) {
+        console.log({ error });
+
         const { dismiss } = toast({
           variant: "error",
-          title: "Reset password failed",
-          description: error.message,
+          title: "Failed to reset password",
+          description:
+            error instanceof AxiosError
+              ? error.response?.data.message
+              : error.message,
         });
         setTimeout(dismiss, 2000);
       } finally {

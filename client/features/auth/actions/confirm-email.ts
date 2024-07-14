@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_URL } from "@/constants";
+import { API_URL, UUID_REGEX } from "@/constants";
 import { cookies } from "next/headers";
 
 interface ConfirmEmailResponse {
@@ -11,6 +11,7 @@ export const confirmEmail = async (
 ): Promise<ConfirmEmailResponse | undefined> => {
   try {
     if (!token) return { error: { message: "Token is missing" } };
+    if (!UUID_REGEX.test(token)) return { error: { message: "Invalid token" } };
     await axios.post(
       API_URL + "/auth/confirm-email",
       { token },

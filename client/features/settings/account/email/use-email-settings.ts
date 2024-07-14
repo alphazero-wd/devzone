@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useToast } from "@/features/ui/use-toast";
 import { initEmailChangeConfirmation } from "./init-email-change";
-import { AxiosError } from "axios";
+import { Axios, AxiosError } from "axios";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email" }),
@@ -39,14 +39,17 @@ export const useEmailSettings = (email: string) => {
         description: "Click on the links sent to " + email + " and " + newEmail,
       });
     } catch (error: any) {
-      toast({
-        variant: "error",
-        title: "Email update failed!",
-        description:
-          error instanceof AxiosError
-            ? error.response?.data.message
-            : error.message,
-      });
+      if (error instanceof AxiosError && error.response?.status === 400)
+        form.setError("email", { message: error.response.data.message });
+      else
+        toast({
+          variant: "error",
+          title: "Email update failed!",
+          description:
+            error instanceof AxiosError
+              ? error.response?.data.message
+              : error.message,
+        });
     } finally {
       setLoading(false);
     }

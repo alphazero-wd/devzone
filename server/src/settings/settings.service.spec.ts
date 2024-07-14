@@ -218,7 +218,14 @@ describe('SettingsService', () => {
         oldEmailToken: null,
       });
 
-      await settingsService.confirmEmailToken(confirmedUser, token, emailType);
+      const { message } = await settingsService.confirmEmailToken(
+        confirmedUser,
+        token,
+        emailType,
+      );
+      expect(message).toBe(
+        `Confirm your old email successfully. Now confirm the token sent to your new email`,
+      );
 
       expect(usersService.update).toHaveBeenCalledWith(user.id, {
         [`${emailType}EmailToken`]: null,
@@ -239,11 +246,12 @@ describe('SettingsService', () => {
         newEmailToken: null,
       });
 
-      await settingsService.confirmEmailToken(
+      const { message } = await settingsService.confirmEmailToken(
         confirmedUser,
         token,
         emailTypeToken,
       );
+      expect(message).toBe('Your email has been successfully updated');
 
       expect(usersService.update).toHaveBeenLastCalledWith(user.id, {
         email: confirmedUser.newEmail,

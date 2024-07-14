@@ -3,16 +3,14 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useState } from "react";
 import { useToast } from "@/features/ui/use-toast";
-import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { sendResetPasswordEmail } from "./send-email";
+import { AxiosError } from "axios";
 
 const formSchema = z.object({
-  email: z.string().email({
+  email: z.string().min(1, { message: "Email is empty" }).email({
     message: "Invalid email provided.",
   }),
 });
-
-const supabase = createClient();
 
 export const useForgotPassword = () => {
   const [hasEmailSent, setHasEmailSent] = useState(false);
@@ -28,29 +26,26 @@ export const useForgotPassword = () => {
   function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     setTimeout(async () => {
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        values.email,
-        { redirectTo: `${window.location.origin}/auth/reset-password` }
-      );
-
-      if (error)
+      try {
+        await sendResetPasswordEmail(values.email);
+        toast({
+          variant: "info",
+          title: "Password reset email sent",
+          description: `Click on the link sent to ${values.email} to reset your password`,
+        });
+        setHasEmailSent(true);
+      } catch (error: any) {
         toast({
           variant: "error",
           title: "Failed to send password reset email!",
-          description: error.message,
-        });
-      else {
-        toast({
-          variant: "success",
-          title: "Password reset email sent!",
           description:
-            "Click on the link sent to " +
-            values.email +
-            " to reset your password",
+            error instanceof AxiosError
+              ? error.response?.data.message
+              : error.message,
         });
-        setHasEmailSent(true);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }, 1000);
   }
 
