@@ -20,6 +20,7 @@ export const LoginForm = () => {
               <FormItem>
                 <Label htmlFor="email">Email</Label>
                 <Input
+                  isInvalid={form.getFieldState("email").invalid}
                   id="email"
                   disabled={loading}
                   {...field}
@@ -44,6 +45,7 @@ export const LoginForm = () => {
                   </Link>
                 </div>
                 <Input
+                  isInvalid={form.getFieldState("password").invalid}
                   disabled={loading}
                   id="password"
                   {...field}

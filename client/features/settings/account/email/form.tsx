@@ -17,6 +17,7 @@ export const EmailInputForm = ({ email }: { email: string }) => {
             <FormItem>
               <Label htmlFor="email">Email</Label>
               <Input
+                isInvalid={form.getFieldState("email").invalid}
                 id="email"
                 disabled={loading}
                 {...field}

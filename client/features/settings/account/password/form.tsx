@@ -19,6 +19,7 @@ export const PasswordSettingsForm = () => {
               <Label htmlFor="password">Password</Label>
               <Input
                 disabled={loading}
+                isInvalid={form.getFieldState("password").invalid}
                 id="password"
                 {...field}
                 type="password"
@@ -37,6 +38,7 @@ export const PasswordSettingsForm = () => {
               <Input
                 disabled={loading}
                 id="newPassword"
+                isInvalid={form.getFieldState("newPassword").invalid}
                 {...field}
                 type="password"
               />
@@ -53,6 +55,7 @@ export const PasswordSettingsForm = () => {
               <Input
                 disabled={loading}
                 id="confirmNewPassword"
+                isInvalid={form.getFieldState("confirmNewPassword").invalid}
                 {...field}
                 type="password"
               />

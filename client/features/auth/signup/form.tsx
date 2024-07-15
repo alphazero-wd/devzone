@@ -22,14 +22,16 @@ export const SignupForm = () => {
             control={form.control}
             name="name"
             render={({ field }) => (
-              <FormItem className="grid gap-2">
+              <FormItem>
                 <Label htmlFor="name">Your name</Label>
                 <Input
+                  isInvalid={form.getFieldState("name").invalid}
                   disabled={loading}
                   {...field}
                   id="name"
                   placeholder="Tim Foo"
                 />
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -42,6 +44,7 @@ export const SignupForm = () => {
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
+                  isInvalid={form.getFieldState("email").invalid}
                   disabled={loading}
                   {...field}
                   placeholder="m@example.com"
@@ -60,6 +63,7 @@ export const SignupForm = () => {
               <FormItem>
                 <Label htmlFor="password">Password</Label>
                 <Input
+                  isInvalid={form.getFieldState("password").invalid}
                   disabled={loading}
                   id="password"
                   {...field}

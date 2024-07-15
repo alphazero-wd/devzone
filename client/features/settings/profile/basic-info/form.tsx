@@ -27,12 +27,13 @@ export const BasicInfoForm = ({ name }: BasicInfoFormProps) => {
           control={form.control}
           name="name"
           render={({ field }) => (
-            <FormItem className="grid gap-2">
-              <Label htmlFor="firstName">Your name</Label>
+            <FormItem>
+              <Label htmlFor="name">Your name</Label>
               <Input
                 disabled={loading}
                 {...field}
-                id="firstName"
+                isInvalid={form.getFieldState("name").invalid}
+                id="name"
                 placeholder="Max"
               />
               <FormDescription>

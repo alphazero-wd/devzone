@@ -35,6 +35,7 @@ export const ForgotPasswordForm = ({
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
+                  isInvalid={form.getFieldState("email").invalid}
                   disabled={loading}
                   {...field}
                   placeholder="m@example.com"

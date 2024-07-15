@@ -1,11 +1,11 @@
 "use client";
 import { Label } from "@/features/ui/label";
 import { Input } from "@/features/ui/input";
-import Link from "next/link";
 import { Button } from "@/features/ui/button";
 import { Form, FormField, FormItem, FormMessage } from "@/features/ui/form";
 import { Spinner } from "@/features/ui/spinner";
 import { useResetPassword } from "./use-reset-password";
+import { cn } from "@/lib/utils";
 
 export const ResetPasswordForm = () => {
   const { form, onSubmit, loading } = useResetPassword();
@@ -20,6 +20,7 @@ export const ResetPasswordForm = () => {
               <FormItem>
                 <Label htmlFor="password">Password</Label>
                 <Input
+                  isInvalid={form.getFieldState("password").invalid}
                   disabled={loading}
                   id="password"
                   {...field}
@@ -36,6 +37,7 @@ export const ResetPasswordForm = () => {
               <FormItem>
                 <Label htmlFor="confirmPassword">Confirm password</Label>
                 <Input
+                  isInvalid={form.getFieldState("confirmPassword").invalid}
                   disabled={loading}
                   id="confirmPassword"
                   {...field}

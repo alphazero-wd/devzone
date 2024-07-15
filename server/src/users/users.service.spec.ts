@@ -55,24 +55,6 @@ describe('UsersService', () => {
       expect(result).toEqual(user);
     });
 
-    it('should throw an error if username exists', async () => {
-      jest
-        .spyOn(prisma.user, 'create')
-        .mockRejectedValue(
-          new Prisma.PrismaClientKnownRequestError(
-            'ERROR: duplicate key value violates unique constraint "username"',
-            { clientVersion: '5.0', code: PrismaError.UniqueViolation },
-          ),
-        );
-      expect(
-        service.create({
-          name: user.name,
-          email: user.email,
-          password: user.password,
-        }),
-      ).rejects.toThrow(BadRequestException);
-    });
-
     it('should throw an error if email exists', async () => {
       jest
         .spyOn(prisma.user, 'create')

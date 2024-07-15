@@ -22,7 +22,7 @@ export class UsersService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === PrismaError.UniqueViolation)
-          throw new BadRequestException('User with that email already exists');
+          throw new BadRequestException('Email already exists');
       }
 
       throw new InternalServerErrorException(error.message);

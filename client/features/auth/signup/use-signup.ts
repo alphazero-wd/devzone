@@ -53,16 +53,20 @@ export const useSignup = () => {
         router.replace("/confirm/required");
         router.refresh();
       } catch (error: any) {
-        const message =
-          error instanceof AxiosError
-            ? error.response?.data.message
-            : error.message;
-        const { dismiss } = toast({
-          variant: "error",
-          title: "Sign up error!",
-          description: message,
-        });
-        setTimeout(dismiss, 2000);
+        if (error instanceof AxiosError && error.response?.status === 400) {
+          form.setError("email", { message: error.response.data.message });
+        } else {
+          const message =
+            error instanceof AxiosError
+              ? error.response?.data.message
+              : error.message;
+          const { dismiss } = toast({
+            variant: "error",
+            title: "Sign up error!",
+            description: message,
+          });
+          setTimeout(dismiss, 2000);
+        }
       } finally {
         setLoading(false);
       }
