@@ -47,6 +47,7 @@ export const useLogin = () => {
         error instanceof AxiosError
           ? error.response?.data.message
           : error.message;
+
       toast({
         variant: "error",
         title: "Login failed!",

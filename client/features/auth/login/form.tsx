@@ -56,7 +56,8 @@ export const LoginForm = () => {
             )}
           />
           <Button type="submit" disabled={loading} className="w-full gap-x-2">
-            {loading ? <Spinner /> : "Login"}
+            {loading && <Spinner />}
+            {loading ? "Logging in..." : "Log in"}
           </Button>
         </form>
       </Form>

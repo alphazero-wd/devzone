@@ -1,10 +1,10 @@
 import { SignupForm } from "./form";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { server } from "@/mocks/server";
 import { http, HttpResponse } from "msw";
 import { API_URL } from "@/constants";
 import { Toaster } from "@/features/ui/toaster";
+import { server } from "@/mocks/server";
 
 test("should render", () => {
   render(<SignupForm />);
@@ -109,6 +109,30 @@ describe("validation is successful", () => {
       },
       { timeout: 2000 }
     );
+  });
+  it("should display error alert if some unexpected error occur", async () => {
+    server.use(
+      http.post(API_URL + "/auth/signup", () => {
+        return HttpResponse.json(
+          { message: "Something went wrong" },
+          { status: 500 }
+        );
+      })
+    );
+    render(
+      <>
+        <Toaster />
+        <SignupForm />
+      </>
+    );
+    const signupButton = screen.getByText(/create account/i);
+    await userEvent.type(screen.getByLabelText(/your name/i), "bob");
+    await userEvent.type(screen.getByLabelText(/email/i), "bob@bob.com");
+    await userEvent.type(screen.getByLabelText(/password/i), "Bob123@");
+    await userEvent.click(signupButton);
+    expect(await screen.findByText(/sign up error!/i)).toBeInTheDocument();
+    const alertContent = await screen.findByText(/something went wrong/i);
+    expect(alertContent).toBeInTheDocument();
   });
 
   it("should display alert, stop loading and reset form when signing up successfully", async () => {
