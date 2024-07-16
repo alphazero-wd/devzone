@@ -7,6 +7,7 @@ import { NAME_MAX_LENGTH } from "@/constants";
 import { useRouter } from "next/navigation";
 import { updateName } from "./update-name";
 import { AxiosError } from "axios";
+import { timeout } from "../../../common/utils";
 
 interface BasicInfoFormParams {
   name: string;
@@ -38,7 +39,8 @@ export const useBasicInfoForm = ({ name }: BasicInfoFormParams) => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true);
-    setTimeout(() => update(values), 2000);
+    await timeout();
+    await update(values);
   };
   const update = async (values: z.infer<typeof formSchema>) => {
     try {

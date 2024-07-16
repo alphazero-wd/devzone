@@ -7,6 +7,7 @@ import { useToast } from "@/features/ui/use-toast";
 import { PASSWORD_REGEX, UUID_REGEX } from "@/constants";
 import { resetPassword } from "./reset";
 import { AxiosError } from "axios";
+import { timeout } from "@/features/common/utils";
 
 const formSchema = z
   .object({
@@ -51,40 +52,39 @@ export const useResetPassword = () => {
     }
   };
 
-  function onSubmit({ password }: z.infer<typeof formSchema>) {
+  async function onSubmit({ password }: z.infer<typeof formSchema>) {
     setLoading(true);
-    setTimeout(async () => {
-      try {
-        validateToken();
-        await resetPassword(password, token!);
-        const { dismiss } = toast({
-          variant: "success",
-          title: "Password reset successfully",
-          description: "You'll be redirected to the home page",
-        });
-        form.reset();
+    await timeout();
+    try {
+      validateToken();
+      await resetPassword(password, token!);
+      const { dismiss } = toast({
+        variant: "success",
+        title: "Password reset successfully",
+        description: "You'll be redirected to the home page",
+      });
+      form.reset();
 
-        setTimeout(() => {
-          dismiss();
-          router.refresh();
-          router.replace("/");
-        }, 2000);
-      } catch (error: any) {
-        console.log({ error });
+      setTimeout(() => {
+        dismiss();
+        router.refresh();
+        router.replace("/");
+      }, 2000);
+    } catch (error: any) {
+      console.log({ error });
 
-        const { dismiss } = toast({
-          variant: "error",
-          title: "Failed to reset password",
-          description:
-            error instanceof AxiosError
-              ? error.response?.data.message
-              : error.message,
-        });
-        setTimeout(dismiss, 2000);
-      } finally {
-        setLoading(false);
-      }
-    }, 1000);
+      const { dismiss } = toast({
+        variant: "error",
+        title: "Failed to reset password",
+        description:
+          error instanceof AxiosError
+            ? error.response?.data.message
+            : error.message,
+      });
+      setTimeout(dismiss, 2000);
+    } finally {
+      setLoading(false);
+    }
   }
   return { form, onSubmit, loading };
 };

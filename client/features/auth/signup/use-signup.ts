@@ -8,6 +8,7 @@ import { NAME_MAX_LENGTH, PASSWORD_REGEX } from "@/constants";
 import { signUp } from "../actions/signup";
 import { login } from "../actions/login";
 import { AxiosError } from "axios";
+import { timeout } from "@/features/common/utils";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Name is empty" }).max(NAME_MAX_LENGTH, {
@@ -37,40 +38,40 @@ export const useSignup = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
-    setTimeout(async () => {
-      try {
-        const user = await signUp(values);
-        await login({ email: user.email, password: values.password });
-        const { dismiss } = toast({
-          variant: "info",
-          title: "Confirm your email",
-          description: `An email has been sent to ${values.email}. Click on the link to confirm.`,
-        });
+    await timeout();
+    try {
+      await signUp(values);
+      await login({ email: values.email, password: values.password });
+      const { dismiss } = toast({
+        variant: "info",
+        title: "Confirm your email",
+        description: `An email has been sent to ${values.email}. Click on the link to confirm.`,
+      });
 
+      setTimeout(dismiss, 2000);
+      form.reset();
+      router.replace("/confirm/required");
+      router.refresh();
+    } catch (error: any) {
+      if (error instanceof AxiosError && error.response?.status === 400) {
+        form.setError("email", { message: error.response.data.message });
+      } else {
+        const message =
+          error instanceof AxiosError
+            ? error.response?.data.message
+            : error.message;
+        const { dismiss } = toast({
+          variant: "error",
+          title: "Sign up error!",
+          description: message,
+        });
         setTimeout(dismiss, 2000);
-        router.replace("/confirm/required");
-        router.refresh();
-      } catch (error: any) {
-        if (error instanceof AxiosError && error.response?.status === 400) {
-          form.setError("email", { message: error.response.data.message });
-        } else {
-          const message =
-            error instanceof AxiosError
-              ? error.response?.data.message
-              : error.message;
-          const { dismiss } = toast({
-            variant: "error",
-            title: "Sign up error!",
-            description: message,
-          });
-          setTimeout(dismiss, 2000);
-        }
-      } finally {
-        setLoading(false);
       }
-    }, 1000);
+    } finally {
+      setLoading(false);
+    }
   }
   return { form, onSubmit, loading };
 };

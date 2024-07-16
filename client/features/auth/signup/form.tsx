@@ -73,8 +73,9 @@ export const SignupForm = () => {
               </FormItem>
             )}
           />
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? <Spinner /> : "Create account"}
+          <Button type="submit" disabled={loading} className="w-full gap-x-2">
+            {loading && <Spinner />}
+            {loading ? "Creating account..." : "Create account"}
           </Button>
         </form>
       </Form>

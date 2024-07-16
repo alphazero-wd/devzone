@@ -1,1 +1,1 @@
-export { capitalize } from "./capitalize";
+export { timeout } from "./timeout";

@@ -4,7 +4,8 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useToast } from "@/features/ui/use-toast";
 import { initEmailChangeConfirmation } from "./init-email-change";
-import { Axios, AxiosError } from "axios";
+import { AxiosError } from "axios";
+import { timeout } from "@/features/common/utils";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email" }),
@@ -26,7 +27,8 @@ export const useEmailSettings = (email: string) => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true);
-    setTimeout(() => sendConfirmationEmail(values.email), 2000);
+    await timeout();
+    await sendConfirmationEmail(values.email);
   };
 
   const sendConfirmationEmail = async (newEmail: string) => {

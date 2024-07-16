@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateSession } from "@/lib/supabase/middleware";
 
-export async function middleware(request: NextRequest) {
-  const { user, response } = await updateSession(request);
-  if (!user) return NextResponse.rewrite(new URL("/auth/login", request.url));
-  return response;
-}
+export async function middleware(request: NextRequest) {}
 
 export const config = {
   matcher: [

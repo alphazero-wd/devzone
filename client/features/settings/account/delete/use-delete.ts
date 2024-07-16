@@ -6,6 +6,7 @@ import { useToast } from "@/features/ui/use-toast";
 import { useRouter } from "next/navigation";
 import { deleteAccount } from "./delete-account";
 import { AxiosError } from "axios";
+import { timeout } from "@/features/common/utils";
 
 const formSchema = z.object({
   password: z.string().min(1, { message: "Password is required" }),
@@ -31,29 +32,28 @@ export const useDeleteAccount = () => {
 
   const onSubmit = async ({ password }: z.infer<typeof formSchema>) => {
     setLoading(true);
-    setTimeout(async () => {
-      try {
-        await deleteAccount(password);
-        toast({
-          variant: "success",
-          title: "Delete account successfully",
-        });
-        form.reset();
-        router.replace("/");
-        router.refresh();
-      } catch (error: any) {
-        toast({
-          variant: "error",
-          title: "Delete account failed!",
-          description:
-            error instanceof AxiosError
-              ? error.response?.data.message
-              : error.message,
-        });
-      } finally {
-        setLoading(false);
-      }
-    }, 2000);
+    await timeout();
+    try {
+      await deleteAccount(password);
+      toast({
+        variant: "success",
+        title: "Delete account successfully",
+      });
+      form.reset();
+      router.replace("/");
+      router.refresh();
+    } catch (error: any) {
+      toast({
+        variant: "error",
+        title: "Delete account failed!",
+        description:
+          error instanceof AxiosError
+            ? error.response?.data.message
+            : error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   return { loading, form, onSubmit, isDialogOpen, onDialogClose, onDialogOpen };
 };

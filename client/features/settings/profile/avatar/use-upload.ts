@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { deleteAvatar } from "./delete-avatar";
 import { uploadAvatar } from "./upload-avatar";
 import { Avatar } from "@/features/users/types";
+import { timeout } from "@/features/common/utils";
 
 export const useUploadImage = (avatar: Avatar | null) => {
   const { toast } = useToast();
@@ -17,9 +18,10 @@ export const useUploadImage = (avatar: Avatar | null) => {
     setNewImage(Object.assign(image, { preview: URL.createObjectURL(image) }));
   };
 
-  const onUploadImage = () => {
+  const onUploadImage = async () => {
     setLoading(true);
-    setTimeout(uploadImage, 2000);
+    await timeout();
+    await uploadImage();
   };
 
   const clearPreviewImage = () => setNewImage(null);

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useToast } from "@/features/ui/use-toast";
 import { AxiosError } from "axios";
 import { updatePassword } from "./update-password";
+import { timeout } from "@/features/common/utils";
 
 const formSchema = z
   .object({
@@ -39,30 +40,29 @@ export const usePasswordSettings = () => {
     newPassword,
   }: z.infer<typeof formSchema>) => {
     setLoading(true);
-    setTimeout(async () => {
-      try {
-        await updatePassword(password, newPassword);
+    await timeout();
+    try {
+      await updatePassword(password, newPassword);
+      toast({
+        variant: "success",
+        title: "Password updated successfully",
+      });
+      form.reset();
+    } catch (error: any) {
+      if (error instanceof AxiosError && error.response?.status === 400) {
+        form.setError("password", { message: error.response.data.message });
+      } else
         toast({
-          variant: "success",
-          title: "Password updated successfully",
+          variant: "error",
+          title: "Failed to update password",
+          description:
+            error instanceof AxiosError
+              ? error.response?.data.message
+              : error?.message,
         });
-        form.reset();
-      } catch (error: any) {
-        if (error instanceof AxiosError && error.response?.status === 400) {
-          form.setError("password", { message: error.response.data.message });
-        } else
-          toast({
-            variant: "error",
-            title: "Failed to update password",
-            description:
-              error instanceof AxiosError
-                ? error.response?.data.message
-                : error?.message,
-          });
-      } finally {
-        setLoading(false);
-      }
-    }, 2000);
+    } finally {
+      setLoading(false);
+    }
   };
   return { loading, form, onSubmit };
 };
