@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/features/ui/use-toast";
 import { useDeleteAvatarDialog } from "./use-delete-dialog";
 import { deleteAvatar } from "./delete-avatar";
-import { AxiosError } from "axios";
+import { isAxiosError } from "axios";
 import { useState } from "react";
 import { Spinner } from "@/features/ui/spinner";
 
@@ -43,9 +43,7 @@ export const DeleteAvatarDialog = ({
         onClose();
       } catch (error: any) {
         showError(
-          error instanceof AxiosError
-            ? error.response?.data.message
-            : error.message
+          isAxiosError(error) ? error.response?.data.message : error.message
         );
       } finally {
         setLoading(false);

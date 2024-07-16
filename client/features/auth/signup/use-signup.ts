@@ -7,7 +7,7 @@ import { useToast } from "@/features/ui/use-toast";
 import { NAME_MAX_LENGTH, PASSWORD_REGEX } from "@/constants";
 import { signUp } from "../actions/signup";
 import { login } from "../actions/login";
-import { AxiosError } from "axios";
+import { isAxiosError } from "axios";
 import { timeout } from "@/features/common/utils";
 
 const formSchema = z.object({
@@ -55,13 +55,12 @@ export const useSignup = () => {
       router.replace("/confirm/required");
       router.refresh();
     } catch (error: any) {
-      if (error instanceof AxiosError && error.response?.status === 400) {
+      if (isAxiosError(error) && error.response?.status === 400) {
         form.setError("email", { message: error.response.data.message });
       } else {
-        const message =
-          error instanceof AxiosError
-            ? error.response?.data.message
-            : error.message;
+        const message = isAxiosError(error)
+          ? error.response?.data.message
+          : error.message;
         const { dismiss } = toast({
           variant: "error",
           title: "Sign up error!",

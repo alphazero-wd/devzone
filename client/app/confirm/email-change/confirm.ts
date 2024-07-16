@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import axios, { isAxiosError } from "axios";
 import { API_URL, UUID_REGEX } from "@/constants";
 import { cookies } from "next/headers";
 
@@ -21,10 +21,9 @@ export const confirmEmailChange = async (
   } catch (error: any) {
     return {
       success: false,
-      message:
-        error instanceof AxiosError
-          ? error.response?.data.message
-          : error.message,
+      message: isAxiosError(error)
+        ? error.response?.data.message
+        : error.message,
     };
   }
 };

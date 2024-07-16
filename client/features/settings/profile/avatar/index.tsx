@@ -66,7 +66,7 @@ export const ProfileAvatarSettings = ({
         <ProfileAvatar
           isPreview={!!newImage}
           name={name}
-          avatarUrl={newImage?.preview || avatar?.url}
+          avatar={newImage?.preview || avatar?.url}
           size="lg"
         />
       </div>

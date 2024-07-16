@@ -4,12 +4,12 @@ import * as z from "zod";
 import { useState } from "react";
 import { useToast } from "@/features/ui/use-toast";
 import { sendResetPasswordEmail } from "./send-email";
-import { AxiosError } from "axios";
+import { isAxiosError } from "axios";
 import { timeout } from "@/features/common/utils";
 
 const formSchema = z.object({
   email: z.string().min(1, { message: "Email is empty" }).email({
-    message: "Invalid email provided.",
+    message: "Invalid email provided",
   }),
 });
 
@@ -36,14 +36,16 @@ export const useForgotPassword = () => {
       });
       setHasEmailSent(true);
     } catch (error: any) {
-      toast({
-        variant: "error",
-        title: "Failed to send password reset email!",
-        description:
-          error instanceof AxiosError
+      if (isAxiosError(error) && error.response?.status === 400) {
+        form.setError("email", { message: error.response.data.message });
+      } else
+        toast({
+          variant: "error",
+          title: "Failed to send password reset email!",
+          description: isAxiosError(error)
             ? error.response?.data.message
             : error.message,
-      });
+        });
     } finally {
       setLoading(false);
     }

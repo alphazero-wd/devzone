@@ -6,7 +6,7 @@ import { useToast } from "@/features/ui/use-toast";
 import { NAME_MAX_LENGTH } from "@/constants";
 import { useRouter } from "next/navigation";
 import { updateName } from "./update-name";
-import { AxiosError } from "axios";
+import { isAxiosError } from "axios";
 import { timeout } from "../../../common/utils";
 
 interface BasicInfoFormParams {
@@ -51,10 +51,9 @@ export const useBasicInfoForm = ({ name }: BasicInfoFormParams) => {
       toast({
         variant: "error",
         title: "Failed to update name",
-        description:
-          error instanceof AxiosError
-            ? error.response?.data.messsage
-            : error.message,
+        description: isAxiosError(error)
+          ? error.response?.data.messsage
+          : error.message,
       });
     } finally {
       setLoading(false);

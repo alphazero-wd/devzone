@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useToast } from "@/features/ui/use-toast";
-import { AxiosError } from "axios";
+import { isAxiosError } from "axios";
 import { updatePassword } from "./update-password";
 import { timeout } from "@/features/common/utils";
 
@@ -49,16 +49,15 @@ export const usePasswordSettings = () => {
       });
       form.reset();
     } catch (error: any) {
-      if (error instanceof AxiosError && error.response?.status === 400) {
+      if (isAxiosError(error) && error.response?.status === 400) {
         form.setError("password", { message: error.response.data.message });
       } else
         toast({
           variant: "error",
           title: "Failed to update password",
-          description:
-            error instanceof AxiosError
-              ? error.response?.data.message
-              : error?.message,
+          description: isAxiosError(error)
+            ? error.response?.data.message
+            : error?.message,
         });
     } finally {
       setLoading(false);

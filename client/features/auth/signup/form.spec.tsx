@@ -6,6 +6,10 @@ import { API_URL } from "@/constants";
 import { Toaster } from "@/features/ui/toaster";
 import { server } from "@/mocks/server";
 
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
 test("should render", () => {
   render(<SignupForm />);
   expect(
@@ -130,9 +134,14 @@ describe("validation is successful", () => {
     await userEvent.type(screen.getByLabelText(/email/i), "bob@bob.com");
     await userEvent.type(screen.getByLabelText(/password/i), "Bob123@");
     await userEvent.click(signupButton);
-    expect(await screen.findByText(/sign up error!/i)).toBeInTheDocument();
-    const alertContent = await screen.findByText(/something went wrong/i);
-    expect(alertContent).toBeInTheDocument();
+    await waitFor(
+      async () => {
+        expect(await screen.findByText(/sign up error!/i)).toBeInTheDocument();
+        const alertContent = await screen.findByText(/something went wrong/i);
+        expect(alertContent).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
   });
 
   it("should display alert, stop loading and reset form when signing up successfully", async () => {

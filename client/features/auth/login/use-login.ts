@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/features/ui/use-toast";
 import { login } from "../actions/login";
-import { AxiosError } from "axios";
+import { isAxiosError } from "axios";
 import { timeout } from "@/features/common/utils";
 
 const formSchema = z.object({
@@ -43,10 +43,9 @@ export const useLogin = () => {
       router.replace("/");
       router.refresh();
     } catch (error: any) {
-      const message =
-        error instanceof AxiosError
-          ? error.response?.data.message
-          : error.message;
+      const message = isAxiosError(error)
+        ? error.response?.data.message
+        : error.message;
 
       toast({
         variant: "error",

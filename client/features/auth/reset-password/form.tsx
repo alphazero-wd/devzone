@@ -5,10 +5,13 @@ import { Button } from "@/features/ui/button";
 import { Form, FormField, FormItem, FormMessage } from "@/features/ui/form";
 import { Spinner } from "@/features/ui/spinner";
 import { useResetPassword } from "./use-reset-password";
-import { cn } from "@/lib/utils";
 
-export const ResetPasswordForm = () => {
-  const { form, onSubmit, loading } = useResetPassword();
+interface ResetPasswordFormProps {
+  token?: string;
+}
+
+export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
+  const { form, onSubmit, loading } = useResetPassword(token);
   return (
     <div className="grid gap-4">
       <Form {...form}>

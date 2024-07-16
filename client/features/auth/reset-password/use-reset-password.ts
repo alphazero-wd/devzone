@@ -6,27 +6,28 @@ import { useMemo, useState } from "react";
 import { useToast } from "@/features/ui/use-toast";
 import { PASSWORD_REGEX, UUID_REGEX } from "@/constants";
 import { resetPassword } from "./reset";
-import { AxiosError } from "axios";
+import { isAxiosError } from "axios";
 import { timeout } from "@/features/common/utils";
+import { login } from "../actions/login";
 
 const formSchema = z
   .object({
     password: z
       .string()
-      .min(6, { message: "Password is too short." })
+      .min(6, { message: "Password is too short" })
       .regex(PASSWORD_REGEX, {
-        message: "Password is not strong enough.",
+        message: "Password is not strong enough",
       }),
     confirmPassword: z
       .string()
-      .min(1, { message: "Confirm password is required" }),
+      .min(1, { message: "Confirm password is empty" }),
   })
   .refine(({ password, confirmPassword }) => password === confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
   });
 
-export const useResetPassword = () => {
+export const useResetPassword = (token?: string) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -36,18 +37,14 @@ export const useResetPassword = () => {
   });
   const { toast } = useToast();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
-  const token = useMemo(
-    () => searchParams.get("token"),
-    [searchParams.get("token")]
-  );
 
   const validateToken = () => {
     let message: string = "";
     if (!token || !UUID_REGEX.test(token)) {
       if (!token) message = "Token is missing";
-      else if (!UUID_REGEX.test(token)) message = "Invalid token";
+      else if (!UUID_REGEX.test(token))
+        message = "Token is not correctly formatted";
       throw new Error(message);
     }
   };
@@ -61,25 +58,21 @@ export const useResetPassword = () => {
       const { dismiss } = toast({
         variant: "success",
         title: "Password reset successfully",
-        description: "You'll be redirected to the home page",
+        description: "Now log in again with your new password",
       });
       form.reset();
-
       setTimeout(() => {
         dismiss();
+        router.replace("/auth/login");
         router.refresh();
-        router.replace("/");
       }, 2000);
     } catch (error: any) {
-      console.log({ error });
-
       const { dismiss } = toast({
         variant: "error",
         title: "Failed to reset password",
-        description:
-          error instanceof AxiosError
-            ? error.response?.data.message
-            : error.message,
+        description: isAxiosError(error)
+          ? error.response?.data.message
+          : error.message,
       });
       setTimeout(dismiss, 2000);
     } finally {

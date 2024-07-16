@@ -8,8 +8,18 @@ import {
 import { ResetPasswordForm } from "@/features/auth/reset-password/form";
 import { getUser } from "@/features/users/actions";
 import { redirect } from "next/navigation";
+import { UUID_REGEX } from "../../../../constants";
+import { CircleAlert } from "lucide-react";
 
-export default async function ResetPasswordPage() {
+interface ResetPasswordPageParams {
+  searchParams: {
+    token?: string;
+  };
+}
+
+export default async function ResetPasswordPage({
+  searchParams: { token },
+}: ResetPasswordPageParams) {
   const user = await getUser();
   if (user) redirect("/");
 
@@ -23,7 +33,7 @@ export default async function ResetPasswordPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ResetPasswordForm />
+          <ResetPasswordForm token={token} />
         </CardContent>
       </Card>
     </div>

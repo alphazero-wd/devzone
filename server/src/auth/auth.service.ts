@@ -75,7 +75,7 @@ export class AuthService {
 
   private async validateToken(token: string) {
     const userId = await this.cacheService.get<number>(token);
-    if (!userId) throw new BadRequestException('Invalid token');
+    if (!userId) throw new BadRequestException('Invalid token provided');
     return userId;
   }
 

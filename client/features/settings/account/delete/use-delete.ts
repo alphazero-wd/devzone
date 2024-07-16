@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useToast } from "@/features/ui/use-toast";
 import { useRouter } from "next/navigation";
 import { deleteAccount } from "./delete-account";
-import { AxiosError } from "axios";
+import { isAxiosError } from "axios";
 import { timeout } from "@/features/common/utils";
 
 const formSchema = z.object({
@@ -46,10 +46,9 @@ export const useDeleteAccount = () => {
       toast({
         variant: "error",
         title: "Delete account failed!",
-        description:
-          error instanceof AxiosError
-            ? error.response?.data.message
-            : error.message,
+        description: isAxiosError(error)
+          ? error.response?.data.message
+          : error.message,
       });
     } finally {
       setLoading(false);

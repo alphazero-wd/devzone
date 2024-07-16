@@ -45,7 +45,8 @@ export const ForgotPasswordForm = ({
             )}
           />
           <Button type="submit" disabled={loading} className="w-full gap-x-2">
-            {loading ? <Spinner /> : "Send email"}
+            {loading && <Spinner />}
+            {loading ? "Sending..." : "Send email"}
           </Button>
         </form>
       </Form>

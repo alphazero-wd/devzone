@@ -6,6 +6,10 @@ import { Toaster } from "@/features/ui/toaster";
 import { API_URL } from "@/constants";
 import { server } from "@/mocks/server";
 
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
 test("should display login form", async () => {
   const component = render(<LoginForm />);
   expect(component).toBeDefined();
@@ -114,7 +118,7 @@ describe("validation is successful", () => {
     });
   });
 
-  describe("and login are successful", () => {
+  describe("and login is successful", () => {
     it("should reset form if login successfully", async () => {
       render(<LoginForm />);
       const emailInput = screen.getByLabelText(/email/i);
