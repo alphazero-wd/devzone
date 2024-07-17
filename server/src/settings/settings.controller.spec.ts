@@ -9,6 +9,7 @@ import {
 } from './dto';
 import { SettingsController } from './settings.controller';
 import { SettingsService } from './settings.service';
+import { Request } from 'express';
 
 describe('SettingsController', () => {
   let settingsController: SettingsController;
@@ -70,13 +71,23 @@ describe('SettingsController', () => {
   });
 
   describe('deleteAccount', () => {
-    it('should delete the user account', async () => {
-      await settingsController.deleteAccount(user, { password: user.password });
+    it('should delete the user account and clear the session', async () => {
+      const req = {
+        logOut: jest.fn(),
+        session: {
+          cookie: { maxAge: 100000 },
+        },
+      } as unknown as Request;
+      await settingsController.deleteAccount(req, user, {
+        password: user.password,
+      });
 
       expect(settingsService.deleteAccount).toHaveBeenCalledWith(
         user,
         user.password,
       );
+      expect(req.logOut).toHaveBeenCalled();
+      expect(req.session.cookie.maxAge).toBe(0);
     });
   });
 

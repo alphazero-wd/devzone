@@ -16,12 +16,14 @@ test("should display login form", async () => {
 });
 
 describe("validation is not successful", () => {
-  it("should show errors if email and password fields are empty", async () => {
+  it("should show errors if email and password fields are required", async () => {
     render(<LoginForm />);
     const loginButton = screen.getByText(/log in/i);
     await userEvent.click(loginButton);
-    const emailErrorMessage = await screen.findByText(/email is empty/i);
-    const passwordErrorMessage = await screen.findByText(/password is empty/i);
+    const emailErrorMessage = await screen.findByText(/email is required/i);
+    const passwordErrorMessage = await screen.findByText(
+      /password is required/i
+    );
     expect(emailErrorMessage).toBeInTheDocument();
     expect(passwordErrorMessage).toBeInTheDocument();
   });
@@ -46,13 +48,17 @@ describe("validation is successful", () => {
     await userEvent.type(emailInput, "bob@bob.com");
     await userEvent.type(passwordInput, "123");
     await userEvent.click(loginButton);
-    expect(loginButton).toHaveTextContent(/logging in.../i);
+    expect(emailInput).toBeDisabled();
+    expect(passwordInput).toBeDisabled();
+    expect(loginButton).toHaveTextContent("Logging in...");
     expect(loginButton).toBeDisabled();
 
     await waitFor(
       () => {
         expect(loginButton).toHaveTextContent(/log in/i);
         expect(loginButton).not.toBeDisabled();
+        expect(emailInput).not.toBeDisabled();
+        expect(passwordInput).not.toBeDisabled();
       },
       { timeout: 2000 }
     );

@@ -14,13 +14,13 @@ const formSchema = z
   .object({
     password: z
       .string()
-      .min(6, { message: "Password is too short" })
+      .min(1, { message: "Password is required" })
       .regex(PASSWORD_REGEX, {
         message: "Password is not strong enough",
       }),
     confirmPassword: z
       .string()
-      .min(1, { message: "Confirm password is empty" }),
+      .min(1, { message: "Confirm password is required" }),
   })
   .refine(({ password, confirmPassword }) => password === confirmPassword, {
     message: "Passwords don't match",

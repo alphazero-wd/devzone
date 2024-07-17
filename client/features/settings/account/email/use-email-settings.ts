@@ -8,7 +8,10 @@ import { isAxiosError } from "axios";
 import { timeout } from "@/features/common/utils";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Invalid email" }),
+  email: z
+    .string()
+    .min(1, { message: "Email is required" })
+    .email({ message: "Invalid email provided" }),
 });
 
 export const useEmailSettings = (email: string) => {

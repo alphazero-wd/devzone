@@ -7,7 +7,7 @@ import { NAME_MAX_LENGTH } from "@/constants";
 import { useRouter } from "next/navigation";
 import { updateName } from "./update-name";
 import { isAxiosError } from "axios";
-import { timeout } from "../../../common/utils";
+import { timeout } from "@/features/common/utils";
 
 interface BasicInfoFormParams {
   name: string;
@@ -45,16 +45,21 @@ export const useBasicInfoForm = ({ name }: BasicInfoFormParams) => {
   const update = async (values: z.infer<typeof formSchema>) => {
     try {
       await updateName(values.name);
-      toast({ variant: "success", title: "Profile updated successfully" });
+      const { dismiss } = toast({
+        variant: "success",
+        title: "Updated your name successfully",
+      });
+      setTimeout(dismiss, 2000);
       router.refresh();
     } catch (error: any) {
-      toast({
+      const { dismiss } = toast({
         variant: "error",
         title: "Failed to update name",
         description: isAxiosError(error)
-          ? error.response?.data.messsage
+          ? error.response?.data.message
           : error.message,
       });
+      setTimeout(dismiss, 2000);
     } finally {
       setLoading(false);
     }

@@ -5,10 +5,8 @@ import { useUploadImage } from "./use-upload";
 import { ProfileAvatar } from "@/features/users/avatar";
 import { useDropzone } from "react-dropzone";
 import { useDeleteAvatarDialog } from "./use-delete-dialog";
-import { MouseEventHandler } from "react";
 import { DeleteAvatarDialog } from "./delete-dialog";
 import { ImageDropzone } from "@/features/common/components/dropzone";
-import { XIcon } from "lucide-react";
 import { Avatar } from "@/features/users/types";
 
 interface ProfileAvatarSettingsProps {
@@ -22,7 +20,6 @@ export const ProfileAvatarSettings = ({
 }: ProfileAvatarSettingsProps) => {
   const { loading, newImage, onImageChange, onUploadImage, clearPreviewImage } =
     useUploadImage(avatar);
-  const onOpen = useDeleteAvatarDialog((state) => state.onOpen);
 
   const { isDragActive, getInputProps, getRootProps } = useDropzone({
     accept: {
@@ -35,13 +32,6 @@ export const ProfileAvatarSettings = ({
     },
   });
 
-  const onDeleteAvatarDialogOpen: MouseEventHandler<HTMLButtonElement> = (
-    e
-  ) => {
-    e.stopPropagation();
-    onOpen();
-  };
-
   return (
     <section className="grid gap-y-4">
       <div
@@ -49,16 +39,7 @@ export const ProfileAvatarSettings = ({
           className: "relative w-24 h-24 group rounded-full",
         })}
       >
-        {avatar && (
-          <Button
-            size="icon"
-            className="absolute opacity-0 group-hover:opacity-100 transition-opacity top-0 -right-3 z-50 bg-destructive rounded-full"
-            onClick={onDeleteAvatarDialogOpen}
-            variant="destructive"
-          >
-            <XIcon className="w-5 h-5" />
-          </Button>
-        )}
+        {avatar && <DeleteAvatarDialog clearPreviewImage={clearPreviewImage} />}
         <ImageDropzone
           isDragActive={isDragActive}
           getInputProps={getInputProps}
@@ -84,7 +65,6 @@ export const ProfileAvatarSettings = ({
           {loading && <Spinner />} {loading ? "Updating..." : "Update"}
         </Button>
       </div>
-      {avatar && <DeleteAvatarDialog clearPreviewImage={clearPreviewImage} />}
     </section>
   );
 };

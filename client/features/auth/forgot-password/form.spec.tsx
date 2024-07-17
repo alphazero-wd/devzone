@@ -16,11 +16,11 @@ test("should display ForgotPassword form", async () => {
 });
 
 describe("validation is not successful", () => {
-  it("should show an error if email is empty", async () => {
+  it("should show an error if email is required", async () => {
     render(<ForgotPassword />);
     const sendResetPasswordEmailButton = screen.getByText(/send email/i);
     await userEvent.click(sendResetPasswordEmailButton);
-    const emailErrorMessage = await screen.findByText(/email is empty/i);
+    const emailErrorMessage = await screen.findByText(/email is required/i);
     expect(emailErrorMessage).toBeInTheDocument();
   });
   it("should show an error if email is not valid", async () => {
@@ -43,12 +43,12 @@ describe("validation is successful", () => {
     const sendResetPasswordEmailButton = screen.getByText(/send email/i);
     await userEvent.type(emailInput, "bob@bob.com");
     await userEvent.click(sendResetPasswordEmailButton);
-    expect(sendResetPasswordEmailButton).toHaveTextContent(/sending.../i);
+    expect(sendResetPasswordEmailButton).toHaveTextContent("Sending...");
     expect(sendResetPasswordEmailButton).toBeDisabled();
   });
 
   describe("and sending is not successful", () => {
-    it("should display error alert if email does not exist", async () => {
+    it("should display form error message if email does not exist", async () => {
       server.use(
         http.post(API_URL + "/auth/forgot-password", () => {
           return HttpResponse.json(

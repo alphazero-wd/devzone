@@ -262,7 +262,7 @@ describe('SettingsService', () => {
 
   describe('initEmailChangeConfirmation', () => {
     it('should throw BadRequestException if the new email already exists', async () => {
-      const newEmail = 'new@example.com';
+      const newEmail = user.email;
 
       (usersService.findByEmail as jest.Mock).mockResolvedValue({
         id: 2,
@@ -271,7 +271,19 @@ describe('SettingsService', () => {
 
       await expect(
         settingsService.initEmailChangeConfirmation(user, newEmail),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(new BadRequestException('Email has not changed'));
+    });
+
+    it('should throw BadRequestException if someone is to update the same email', async () => {
+      const newEmail = 'new@example.com';
+
+      (usersService.update as jest.Mock).mockRejectedValue(
+        new BadRequestException('Email already exists'),
+      );
+
+      await expect(
+        settingsService.initEmailChangeConfirmation(user, newEmail),
+      ).rejects.toThrow(new BadRequestException('Email already exists'));
     });
 
     it('should initiate email change confirmation', async () => {

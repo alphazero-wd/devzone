@@ -28,15 +28,7 @@ export const EmailInputForm = ({ email }: { email: string }) => {
           )}
         />
         <div className="py-4 border-t flex items-center gap-x-4">
-          <Button
-            type="submit"
-            disabled={
-              loading ||
-              !form.getValues("email") ||
-              form.getValues("email") === email
-            }
-            className="w-fit gap-x-2"
-          >
+          <Button type="submit" disabled={loading} className="w-fit gap-x-2">
             {loading && <Spinner />} {loading ? "Updating..." : "Update"}
           </Button>
         </div>

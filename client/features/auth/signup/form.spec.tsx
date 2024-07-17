@@ -18,14 +18,14 @@ test("should render", () => {
 });
 
 describe("validation is not successful", () => {
-  it("should show errors if name, email and password fields are empty", async () => {
+  it("should show errors if name, email and password fields are required", async () => {
     render(<SignupForm />);
     const signupButton = screen.getByText(/create account/i);
     await userEvent.click(signupButton);
-    const nameErrorMessage = await screen.findByText(/name is empty/i);
-    const emailErrorMessage = await screen.findByText(/email is empty/i);
+    const nameErrorMessage = await screen.findByText(/name is required/i);
+    const emailErrorMessage = await screen.findByText(/email is required/i);
     const passwordErrorMessage = await screen.findByText(
-      /password is too short/i
+      /password is required/i
     );
     expect(nameErrorMessage).toBeInTheDocument();
     expect(emailErrorMessage).toBeInTheDocument();
@@ -51,7 +51,9 @@ describe("validation is not successful", () => {
       const signupButton = screen.getByText(/create account/i);
       await userEvent.type(emailInput, "abc@a");
       await userEvent.click(signupButton);
-      const emailErrorMessage = await screen.findByText(/email is invalid/i);
+      const emailErrorMessage = await screen.findByText(
+        /invalid email provided/i
+      );
       expect(emailErrorMessage).toBeInTheDocument();
     });
   });
@@ -72,20 +74,28 @@ describe("validation is not successful", () => {
 });
 
 describe("validation is successful", () => {
-  it("should display loading state upon signup", async () => {
+  it("should display loading state after submitting the form and later stop regardless", async () => {
     render(<SignupForm />);
     const signupButton = screen.getByText(/create account/i);
     await userEvent.type(screen.getByLabelText(/your name/i), "bob");
     await userEvent.type(screen.getByLabelText(/email/i), "bob@bob.com");
     await userEvent.type(screen.getByLabelText(/password/i), "Bob123@");
     await userEvent.click(signupButton);
-    await waitFor(() => {
-      expect(signupButton).toHaveTextContent(/creating account.../i);
-      expect(screen.getByLabelText(/your name/i)).toBeDisabled();
-      expect(screen.getByLabelText(/email/i)).toBeDisabled();
-      expect(screen.getByLabelText(/password/i)).toBeDisabled();
-      expect(signupButton).toBeDisabled();
-    });
+    expect(signupButton).toHaveTextContent("Creating account...");
+    expect(screen.getByLabelText(/your name/i)).toBeDisabled();
+    expect(screen.getByLabelText(/email/i)).toBeDisabled();
+    expect(screen.getByLabelText(/password/i)).toBeDisabled();
+    expect(signupButton).toBeDisabled();
+    await waitFor(
+      () => {
+        expect(signupButton).toHaveTextContent(/create account/i);
+        expect(screen.getByLabelText(/your name/i)).not.toBeDisabled();
+        expect(screen.getByLabelText(/email/i)).not.toBeDisabled();
+        expect(screen.getByLabelText(/password/i)).not.toBeDisabled();
+        expect(signupButton).not.toBeDisabled();
+      },
+      { timeout: 2000 }
+    );
   });
 
   it("should show error and stop loading if email already exists", async () => {
@@ -114,6 +124,7 @@ describe("validation is successful", () => {
       { timeout: 2000 }
     );
   });
+
   it("should display error alert if some unexpected error occur", async () => {
     server.use(
       http.post(API_URL + "/auth/signup", () => {
@@ -137,14 +148,15 @@ describe("validation is successful", () => {
     await waitFor(
       async () => {
         expect(await screen.findByText(/sign up error!/i)).toBeInTheDocument();
-        const alertContent = await screen.findByText(/something went wrong/i);
-        expect(alertContent).toBeInTheDocument();
+        expect(
+          await screen.findByText(/something went wrong/i)
+        ).toBeInTheDocument();
       },
       { timeout: 2000 }
     );
   });
 
-  it("should display alert, stop loading and reset form when signing up successfully", async () => {
+  it("should display alert and reset form when signing up successfully", async () => {
     const components = (
       <>
         <Toaster />
@@ -165,11 +177,6 @@ describe("validation is successful", () => {
         expect(nameInput).toHaveValue("");
         expect(emailInput).toHaveValue("");
         expect(passwordInput).toHaveValue("");
-        expect(nameInput).not.toBeDisabled();
-        expect(emailInput).not.toBeDisabled();
-        expect(passwordInput).not.toBeDisabled();
-        expect(signupButton).toHaveTextContent(/create account/i);
-        expect(signupButton).not.toBeDisabled();
       },
       { timeout: 2000 }
     );

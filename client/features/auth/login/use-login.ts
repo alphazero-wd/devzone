@@ -9,10 +9,10 @@ import { isAxiosError } from "axios";
 import { timeout } from "@/features/common/utils";
 
 const formSchema = z.object({
-  email: z.string().min(1, { message: "Email is empty" }).email({
+  email: z.string().min(1, { message: "Email is required" }).email({
     message: "Email is invalid",
   }),
-  password: z.string().min(1, { message: "Password is empty." }),
+  password: z.string().min(1, { message: "Password is required." }),
 });
 
 export const useLogin = () => {

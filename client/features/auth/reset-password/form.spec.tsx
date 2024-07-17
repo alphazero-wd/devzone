@@ -19,15 +19,15 @@ test("should display reset password form", async () => {
 });
 
 describe("validation is not successful", () => {
-  it("should show errors if password and confirm fields are empty", async () => {
+  it("should show errors if password and confirm fields are required", async () => {
     render(<ResetPasswordForm />);
     const resetPasswordButton = screen.getByText("Reset password");
     await userEvent.click(resetPasswordButton);
     const passwordErrorMessage = await screen.findByText(
-      /password is too short/i
+      "Password is required"
     );
     const confirmPasswordErrorMessage = await screen.findByText(
-      /confirm password is empty/i
+      /confirm password is required/i
     );
     expect(passwordErrorMessage).toBeInTheDocument();
     expect(confirmPasswordErrorMessage).toBeInTheDocument();

@@ -13,6 +13,7 @@ const formSchema = z
     password: z.string().min(1, { message: "Current password is required" }),
     newPassword: z
       .string()
+      .min(1, { message: "New password is required" })
       .regex(PASSWORD_REGEX, { message: "New password is not strong enough" }),
     confirmNewPassword: z
       .string()
@@ -21,6 +22,10 @@ const formSchema = z
   .refine((data) => data.newPassword === data.confirmNewPassword, {
     message: "Passwords don't match",
     path: ["confirmNewPassword"],
+  })
+  .refine((data) => data.password !== data.newPassword, {
+    message: "New password must be different from current password",
+    path: ["newPassword"],
   });
 
 export const usePasswordSettings = () => {

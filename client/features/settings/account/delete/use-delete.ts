@@ -43,13 +43,16 @@ export const useDeleteAccount = () => {
       router.replace("/");
       router.refresh();
     } catch (error: any) {
-      toast({
-        variant: "error",
-        title: "Delete account failed!",
-        description: isAxiosError(error)
-          ? error.response?.data.message
-          : error.message,
-      });
+      if (isAxiosError(error) && error.response?.status === 400) {
+        form.setError("password", { message: error.response.data.message });
+      } else
+        toast({
+          variant: "error",
+          title: "Failed to delete account",
+          description: isAxiosError(error)
+            ? error.response?.data.message
+            : error?.message,
+        });
     } finally {
       setLoading(false);
     }

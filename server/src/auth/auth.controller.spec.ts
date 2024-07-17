@@ -6,6 +6,7 @@ import { User } from '@prisma/client';
 import { userFixture } from '../users/test-utils';
 import { BadRequestException } from '@nestjs/common';
 import { MOCK_TOKEN } from '../common/constants';
+import { Request } from 'express';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -80,12 +81,13 @@ describe('AuthController', () => {
   describe('logout', () => {
     it('should invalidate cookie', async () => {
       const req = {
-        logOut: () => {},
+        logOut: jest.fn(),
         session: {
           cookie: { maxAge: 100000 },
         },
-      } as any;
+      } as unknown as Request;
       controller.logout(req);
+      expect(req.logOut).toHaveBeenCalled();
       expect(req.session.cookie.maxAge).toBe(0);
     });
   });

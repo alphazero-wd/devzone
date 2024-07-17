@@ -11,15 +11,18 @@ import { isAxiosError } from "axios";
 import { timeout } from "@/features/common/utils";
 
 const formSchema = z.object({
-  name: z.string().min(1, { message: "Name is empty" }).max(NAME_MAX_LENGTH, {
-    message: "Name is too long",
-  }),
-  email: z.string().min(1, { message: "Email is empty" }).email({
-    message: "Email is invalid",
+  name: z
+    .string()
+    .min(1, { message: "Name is required" })
+    .max(NAME_MAX_LENGTH, {
+      message: "Name is too long",
+    }),
+  email: z.string().min(1, { message: "Email is required" }).email({
+    message: "Invalid email provided",
   }),
   password: z
     .string()
-    .min(6, { message: "Password is too short" })
+    .min(1, { message: "Password is required" })
     .regex(PASSWORD_REGEX, {
       message: "Password is not strong enough",
     }),

@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
-import { MailService } from '../mail/mail.service';
 import { User } from '@prisma/client';
-import { v4 } from 'uuid';
 import * as argon2 from 'argon2';
+import { v4 } from 'uuid';
+import { MailService } from '../mail/mail.service';
 import { UploadFileDto } from '../storage/dto';
-import { UserWithAvatar } from '../users/types';
 import { StorageService } from '../storage/storage.service';
+import { UserWithAvatar } from '../users/types';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class SettingsService {
@@ -76,7 +76,8 @@ export class SettingsService {
   }
 
   async initEmailChangeConfirmation(user: User, newEmail: string) {
-    if (user.email === newEmail) return;
+    if (user.email === newEmail)
+      throw new BadRequestException('Email has not changed');
     const existingUser = await this.usersService.findByEmail(newEmail);
     if (existingUser) throw new BadRequestException('Email already exists');
     const oldEmailToken = v4();

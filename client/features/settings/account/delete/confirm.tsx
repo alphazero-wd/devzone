@@ -39,10 +39,10 @@ export const ConfirmDeleteDialog = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <Label className="block">
+                  <Label htmlFor="password" className="block">
                     To confirm, type in your password
                   </Label>
-                  <Input type="password" {...field} />
+                  <Input type="password" id="password" {...field} />
                   <FormMessage />
                 </FormItem>
               )}
@@ -53,7 +53,7 @@ export const ConfirmDeleteDialog = () => {
               </Button>
               <Button
                 type="submit"
-                disabled={loading || !form.getValues("password")}
+                disabled={loading}
                 variant="destructive"
                 className="gap-x-2"
               >

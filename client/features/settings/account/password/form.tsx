@@ -16,7 +16,7 @@ export const PasswordSettingsForm = () => {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Current password</Label>
               <Input
                 disabled={loading}
                 isInvalid={form.getFieldState("password").invalid}
@@ -33,7 +33,7 @@ export const PasswordSettingsForm = () => {
           name="newPassword"
           render={({ field }) => (
             <FormItem>
-              <Label htmlFor="newPassword">New Password</Label>
+              <Label htmlFor="newPassword">New password</Label>
 
               <Input
                 disabled={loading}

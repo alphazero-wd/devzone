@@ -7,14 +7,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/features/ui/dialog";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/features/ui/use-toast";
-import { useDeleteAvatarDialog } from "./use-delete-dialog";
 import { deleteAvatar } from "./delete-avatar";
 import { isAxiosError } from "axios";
-import { useState } from "react";
+import { MouseEventHandler, useState } from "react";
 import { Spinner } from "@/features/ui/spinner";
+import { XIcon } from "lucide-react";
+import { timeout } from "@/features/common/utils";
 
 interface DeleteAvatarDialogProps {
   clearPreviewImage: () => void;
@@ -25,43 +27,55 @@ export const DeleteAvatarDialog = ({
 }: DeleteAvatarDialogProps) => {
   const router = useRouter();
   const { toast } = useToast();
-  const { isOpen, onClose } = useDeleteAvatarDialog();
+  const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const onDeletePost = () => {
+  const onDeleteAvatar = async () => {
     setLoading(true);
-    setTimeout(async () => {
-      try {
-        await deleteAvatar();
-        const { dismiss } = toast({
-          variant: "success",
-          title: "Delete avatar successfully!",
-        });
-        setTimeout(dismiss, 2000);
-        clearPreviewImage();
-        router.refresh();
-        onClose();
-      } catch (error: any) {
-        showError(
-          isAxiosError(error) ? error.response?.data.message : error.message
-        );
-      } finally {
-        setLoading(false);
-      }
-    }, 2000);
+    await timeout();
+    try {
+      await deleteAvatar();
+      const { dismiss } = toast({
+        variant: "success",
+        title: "Delete avatar successfully!",
+      });
+      setTimeout(dismiss, 2000);
+      clearPreviewImage();
+      router.refresh();
+      setIsOpen(false);
+    } catch (error: any) {
+      const message = isAxiosError(error)
+        ? error.response?.data.message
+        : error.message;
+      const { dismiss } = toast({
+        variant: "error",
+        title: "Delete avatar failed!",
+        description: message,
+      });
+      setTimeout(dismiss, 2000);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const showError = (message: string) => {
-    const { dismiss } = toast({
-      variant: "error",
-      title: "Delete avatar failed!",
-      description: message,
-    });
-    setTimeout(dismiss, 2000);
+  const onDeleteAvatarDialogOpen: MouseEventHandler<HTMLButtonElement> = (
+    e
+  ) => {
+    e.stopPropagation();
+    setIsOpen(true);
   };
-
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button
+          size="icon"
+          className="absolute opacity-0 group-hover:opacity-100 transition-opacity top-0 -right-3 z-50 bg-destructive rounded-full"
+          variant="destructive"
+          onClick={onDeleteAvatarDialogOpen}
+        >
+          <XIcon className="w-5 h-5" />
+        </Button>
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Delete avatar confirmation</DialogTitle>
@@ -70,12 +84,16 @@ export const DeleteAvatarDialog = ({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" disabled={loading} onClick={onClose}>
+          <Button
+            variant="outline"
+            disabled={loading}
+            onClick={() => setIsOpen(false)}
+          >
             Cancel
           </Button>
           <Button
             variant="destructive"
-            onClick={onDeletePost}
+            onClick={onDeleteAvatar}
             className="w-fit gap-x-2"
             type="submit"
             disabled={loading}

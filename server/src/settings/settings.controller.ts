@@ -1,8 +1,10 @@
+import { Request } from 'express';
 import {
   Body,
   Controller,
   Delete,
   FileTypeValidator,
+  Req,
   HttpCode,
   HttpStatus,
   MaxFileSizeValidator,
@@ -56,10 +58,13 @@ export class SettingsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete('account/delete')
   async deleteAccount(
+    @Req() req: Request,
     @CurrentUser() user: User,
     @Body() { password }: DeleteAccountDto,
   ) {
     await this.settingsService.deleteAccount(user, password);
+    req.logOut(() => {});
+    req.session.cookie.maxAge = 0;
   }
 
   @UseGuards(CookieAuthGuard)
