@@ -13,4 +13,9 @@ export const handlers = [
   http.patch(API_URL + "/settings/account/email", () => new HttpResponse()),
   http.patch(API_URL + "/settings/account/password", () => new HttpResponse()),
   http.delete(API_URL + "/settings/account/delete", () => new HttpResponse()),
+  http.delete(
+    API_URL + "/settings/profile/avatar/remove",
+    () => new HttpResponse()
+  ),
+  http.patch(API_URL + "/settings/profile/avatar", () => new HttpResponse()),
 ];

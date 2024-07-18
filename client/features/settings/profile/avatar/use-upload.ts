@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FileWithPreview } from "@/features/common/types";
 import { useToast } from "@/features/ui/use-toast";
 import { useRouter } from "next/navigation";
@@ -6,6 +6,7 @@ import { deleteAvatar } from "./delete-avatar";
 import { uploadAvatar } from "./upload-avatar";
 import { Avatar } from "@/features/users/types";
 import { timeout } from "@/features/common/utils";
+import { isAxiosError } from "axios";
 
 export const useUploadImage = (avatar: Avatar | null) => {
   const { toast } = useToast();
@@ -15,42 +16,47 @@ export const useUploadImage = (avatar: Avatar | null) => {
 
   const onImageChange = (image?: File) => {
     if (!image) return;
-    setNewImage(Object.assign(image, { preview: URL.createObjectURL(image) }));
+    const preview = URL.createObjectURL(image);
+    setNewImage(Object.assign(image, { preview }));
   };
 
-  const onUploadImage = async () => {
-    setLoading(true);
-    await timeout();
-    await uploadImage();
+  const clearPreviewImage = () => {
+    if (!newImage) return;
+    URL.revokeObjectURL(newImage.preview);
+    setNewImage(null);
   };
-
-  const clearPreviewImage = () => setNewImage(null);
 
   const uploadImage = async () => {
     if (!newImage) return;
-    if (avatar) await deleteAvatar();
+    setLoading(true);
+    await timeout();
     try {
+      if (avatar) await deleteAvatar();
       await uploadAvatar(newImage);
       toast({
         variant: "success",
         title: "Avatar updated successfully",
       });
-      router.refresh();
       clearPreviewImage();
+      router.refresh();
     } catch (error: any) {
-      showError(error.message);
+      const message = isAxiosError(error)
+        ? error.response?.data.message
+        : error.message;
+      toast({
+        variant: "error",
+        title: "Failed to update avatar",
+        description: message,
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const showError = (message: string) => {
-    toast({
-      variant: "error",
-      title: "Failed to update avatar",
-      description: message,
-    });
-  };
+  useEffect(() => {
+    if (!newImage) return;
+    return () => URL.revokeObjectURL(newImage.preview);
+  }, [newImage]);
 
-  return { loading, onUploadImage, onImageChange, newImage, clearPreviewImage };
+  return { loading, uploadImage, onImageChange, newImage, clearPreviewImage };
 };

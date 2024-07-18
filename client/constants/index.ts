@@ -6,3 +6,5 @@ export const UUID_REGEX =
 export const PAGE_LIMIT = 10;
 
 export const NAME_MAX_LENGTH = 30;
+
+export const MAX_AVATAR_FILE_SIZE = 1024 * 1024 * 2; // 2MB

@@ -22,9 +22,16 @@ it("should show the confirmation dialog when the delete account button is clicke
   });
   await userEvent.click(deleteAccountButton);
   expect(await screen.findByRole("dialog")).toBeInTheDocument();
-  expect(
-    await screen.findByText(/delete account confirmation/i)
-  ).toBeInTheDocument();
+});
+
+it("should close the dialog when the Cancel button is clicked", async () => {
+  render(<ConfirmDeleteDialog />);
+  const deleteAccountButton = screen.getByRole("button", {
+    name: /delete account/i,
+  });
+  await userEvent.click(deleteAccountButton);
+  await userEvent.click(await screen.findByRole("button", { name: /cancel/i }));
+  expect(screen.queryByRole("dialog")).toBeNull();
 });
 
 describe("when filling in the confirmation password", () => {
@@ -34,26 +41,6 @@ describe("when filling in the confirmation password", () => {
       name: /delete account/i,
     });
     await userEvent.click(deleteAccountButton);
-  });
-
-  it("should show the loading and stop later regardless", async () => {
-    const continueButton = await screen.findByRole("button", {
-      name: /continue/i,
-    });
-    const passwordInput = await screen.findByLabelText(
-      /to confirm, type in your password/i
-    );
-    await userEvent.type(passwordInput, "bob");
-    await userEvent.click(continueButton);
-    expect(continueButton).toHaveTextContent("Deleting...");
-    expect(continueButton).toBeDisabled();
-    await waitFor(
-      () => {
-        expect(continueButton).toHaveTextContent("Continue");
-        expect(continueButton).not.toBeDisabled();
-      },
-      { timeout: 2000 }
-    );
   });
 
   it("should show a form error if password is empty", async () => {
@@ -108,6 +95,31 @@ describe("when the confirmation password is correct", () => {
       name: /delete account/i,
     });
     await userEvent.click(deleteAccountButton);
+  });
+
+  it("should show the loading and stop later regardless", async () => {
+    const cancelButton = await screen.findByRole("button", {
+      name: /cancel/i,
+    });
+    const continueButton = await screen.findByRole("button", {
+      name: /continue/i,
+    });
+    const passwordInput = await screen.findByLabelText(
+      /to confirm, type in your password/i
+    );
+    await userEvent.type(passwordInput, "bob");
+    await userEvent.click(continueButton);
+    expect(continueButton).toHaveTextContent("Deleting...");
+    expect(cancelButton).toBeDisabled();
+    expect(continueButton).toBeDisabled();
+    await waitFor(
+      () => {
+        expect(continueButton).toHaveTextContent("Continue");
+        expect(cancelButton).not.toBeDisabled();
+        expect(continueButton).not.toBeDisabled();
+      },
+      { timeout: 2000 }
+    );
   });
 
   it("should show an error alert when something goes wrong", async () => {

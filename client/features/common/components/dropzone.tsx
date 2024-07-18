@@ -1,8 +1,10 @@
 import { cn } from "@/lib/utils";
 import { CameraIcon } from "lucide-react";
+import { InputHTMLAttributes } from "react";
 import { DropzoneInputProps } from "react-dropzone";
 
-interface ImageDropzoneProps {
+interface ImageDropzoneProps
+  extends Pick<InputHTMLAttributes<HTMLInputElement>, "id"> {
   isDragActive: boolean;
   getInputProps: (props?: DropzoneInputProps) => DropzoneInputProps;
 }
@@ -10,6 +12,7 @@ interface ImageDropzoneProps {
 export const ImageDropzone = ({
   isDragActive,
   getInputProps,
+  id,
 }: ImageDropzoneProps) => {
   return (
     <div
@@ -18,7 +21,11 @@ export const ImageDropzone = ({
         "z-10 text-background transition-opacity rounded-full w-full h-full absolute top-0 left-0 bg-foreground/80 flex justify-center items-center"
       )}
     >
+      <label htmlFor={id || "image-upload"} className="sr-only">
+        Upload image
+      </label>
       <input
+        id={id || "image-upload"}
         {...getInputProps({
           className:
             "rounded-full block pointer-events-none w-full h-full absolute top-6 -left-6",

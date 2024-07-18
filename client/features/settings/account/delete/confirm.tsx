@@ -48,7 +48,12 @@ export const ConfirmDeleteDialog = () => {
               )}
             />
             <DialogFooter className="mt-3 border-t pt-4">
-              <Button type="button" variant="outline" onClick={onDialogClose}>
+              <Button
+                disabled={loading}
+                type="button"
+                variant="outline"
+                onClick={onDialogClose}
+              >
                 Cancel
               </Button>
               <Button
