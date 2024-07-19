@@ -9,6 +9,7 @@ export const handlers = [
   http.post(API_URL + "/auth/resend-confirmation", () => new HttpResponse()),
   http.post(API_URL + "/auth/forgot-password", () => new HttpResponse()),
   http.post(API_URL + "/auth/reset-password", () => new HttpResponse()),
+  http.post(API_URL + "/auth/logout", () => new HttpResponse()),
   http.patch(API_URL + "/settings/profile/name", () => new HttpResponse()),
   http.patch(API_URL + "/settings/account/email", () => new HttpResponse()),
   http.patch(API_URL + "/settings/account/password", () => new HttpResponse()),

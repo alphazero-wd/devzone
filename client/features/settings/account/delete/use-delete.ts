@@ -40,8 +40,8 @@ export const useDeleteAccount = () => {
         title: "Delete account successfully",
       });
       form.reset();
-      router.replace("/");
       router.refresh();
+      router.replace("/");
     } catch (error: any) {
       if (isAxiosError(error) && error.response?.status === 400) {
         form.setError("password", { message: error.response.data.message });

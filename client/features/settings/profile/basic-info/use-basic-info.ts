@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useToast } from "@/features/ui/use-toast";
 import { NAME_MAX_LENGTH } from "@/constants";
-import { useRouter } from "next/navigation";
 import { updateName } from "./update-name";
 import { isAxiosError } from "axios";
 import { timeout } from "@/features/common/utils";
@@ -25,7 +24,6 @@ const formSchema = z.object({
 export const useBasicInfoForm = ({ name }: BasicInfoFormParams) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -50,7 +48,6 @@ export const useBasicInfoForm = ({ name }: BasicInfoFormParams) => {
         title: "Updated your name successfully",
       });
       setTimeout(dismiss, 2000);
-      router.refresh();
     } catch (error: any) {
       const { dismiss } = toast({
         variant: "error",

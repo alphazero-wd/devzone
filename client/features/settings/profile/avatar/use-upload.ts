@@ -1,17 +1,15 @@
-import { useEffect, useState } from "react";
 import { FileWithPreview } from "@/features/common/types";
+import { timeout } from "@/features/common/utils";
 import { useToast } from "@/features/ui/use-toast";
-import { useRouter } from "next/navigation";
+import { Avatar } from "@/features/users/types";
+import { isAxiosError } from "axios";
+import { useEffect, useState } from "react";
 import { deleteAvatar } from "./delete-avatar";
 import { uploadAvatar } from "./upload-avatar";
-import { Avatar } from "@/features/users/types";
-import { timeout } from "@/features/common/utils";
-import { isAxiosError } from "axios";
 
 export const useUploadImage = (avatar: Avatar | null) => {
   const { toast } = useToast();
   const [newImage, setNewImage] = useState<FileWithPreview | null>(null);
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const onImageChange = (image?: File) => {
@@ -37,8 +35,6 @@ export const useUploadImage = (avatar: Avatar | null) => {
         variant: "success",
         title: "Avatar updated successfully",
       });
-      clearPreviewImage();
-      router.refresh();
     } catch (error: any) {
       const message = isAxiosError(error)
         ? error.response?.data.message
